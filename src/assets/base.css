@@ -1,0 +1,12 @@
+html, body {
+  height: 100%;
+}
+
+.b-overlay .bg-dark {
+  /* remove unused blur - performance++ */
+  backdrop-filter: initial !important;
+}
+
+td, th {
+  vertical-align: middle;
+}
