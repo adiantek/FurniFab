@@ -50,3 +50,25 @@ npm run test:unit
 ```sh
 npm run lint
 ```
+
+## Tauri Application
+
+To run as tauri app, you need to have rust installed and tauri cli installed.
+
+To install tauri cli run:
+
+```sh
+cargo install tauri-cli
+```
+
+Then to run a development version of app run:
+
+```sh
+cargo tauri dev
+```
+
+To build app run:
+
+```sh
+cargo tauri build
+```
