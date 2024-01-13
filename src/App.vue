@@ -1,7 +1,17 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import { type CommandOutput, runExecutable } from '@/api'
 
-document.documentElement.setAttribute('data-bs-theme', 'dark');
+document.documentElement.setAttribute('data-bs-theme', 'dark')
 
+const commandResult = ref<CommandOutput | undefined>()
+
+async function onButtonClick() {
+  commandResult.value = await runExecutable('pa.exe', 'file_pa.txt\n').catch((error) => {
+    console.error(error)
+    return undefined
+  })
+}
 </script>
 <style scoped>
 .loader {
@@ -14,9 +24,13 @@ document.documentElement.setAttribute('data-bs-theme', 'dark');
     <div class="spinner-border" role="status">
       <span class="visually-hidden"></span>
     </div>
+    <div>Tu będzie projekt</div>
     <div>
-      Tu będzie projekt
+      <button @click="onButtonClick">Run F2</button>
     </div>
+    <div>{{ commandResult?.stdout }}</div>
+    <div>{{ commandResult?.stderr }}</div>
+    <div>{{ commandResult?.error }}</div>
   </div>
   <BToaster />
 </template>

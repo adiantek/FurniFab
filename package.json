@@ -4,7 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "vite",
+    "dev:tauri": "npm run build:tauri && npm run dev",
     "build": "run-p type-check build-only",
+    "build:all": "run-p build build:tauri",
+    "build:tauri": "npm run build:python",
+    "build:python": "cd algo/F2,rj,pmtn,Cmax && pyinstaller --onefile --clean pa.py",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",

@@ -1,7 +1,7 @@
 {
   "build": {
-    "beforeBuildCommand": "npm run build",
-    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build:all",
+    "beforeDevCommand": "npm run dev:tauri",
     "devPath": "http://localhost:5173",
     "distDir": "../dist"
   },
@@ -37,7 +37,10 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": {
+        "../algo/F2,rj,pmtn,Cmax/dist/pa.exe": "",
+        "../algo/F2,rj,pmtn,Cmax/file_pa.txt": ""
+      },
       "shortDescription": "",
       "targets": "all",
       "windows": {
