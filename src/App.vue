@@ -6,8 +6,8 @@ document.documentElement.setAttribute('data-bs-theme', 'dark')
 
 const commandResult = ref<CommandOutput | undefined>()
 
-async function onButtonClick() {
-  commandResult.value = await runExecutable('pa.exe', 'file_pa.txt\n').catch((error) => {
+async function onButtonClick(exec: string) {
+  commandResult.value = await runExecutable(exec, 'file_pa.txt\n').catch((error) => {
     console.error(error)
     return undefined
   })
@@ -26,7 +26,11 @@ async function onButtonClick() {
     </div>
     <div>Tu będzie projekt</div>
     <div>
-      <button @click="onButtonClick">Run F2</button>
+      <button @click="() => onButtonClick('pa.exe')">Run F2</button>
+      <br>
+      <button @click="() => onButtonClick('scheduling_conflicts.exe')">
+        Run scheduling with conflicts
+      </button>
     </div>
     <div>{{ commandResult?.stdout }}</div>
     <div>{{ commandResult?.stderr }}</div>
