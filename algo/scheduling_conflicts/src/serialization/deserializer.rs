@@ -185,7 +185,7 @@ impl<'a, R: BufRead> DeserializerTrait<'a> for &mut Deserializer<'a, R> {
     }
 
     fn deserialize_tuple<V: Visitor<'a>>(self, _: usize, visitor: V) -> Result<V::Value> {
-        visitor.visit_seq(self)
+        visitor.visit_seq(SimpleSeqAccess(self))
     }
 
     fn deserialize_tuple_struct<V: Visitor<'a>>(
@@ -194,7 +194,7 @@ impl<'a, R: BufRead> DeserializerTrait<'a> for &mut Deserializer<'a, R> {
         _: usize,
         visitor: V,
     ) -> Result<V::Value> {
-        visitor.visit_seq(self)
+        visitor.visit_seq(SimpleSeqAccess(self))
     }
 
     fn deserialize_map<V: Visitor<'a>>(self, visitor: V) -> Result<V::Value> {
@@ -207,7 +207,7 @@ impl<'a, R: BufRead> DeserializerTrait<'a> for &mut Deserializer<'a, R> {
         _: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value> {
-        visitor.visit_seq(self)
+        visitor.visit_seq(SimpleSeqAccess(self))
     }
 
     fn deserialize_enum<V: Visitor<'a>>(
@@ -225,6 +225,17 @@ impl<'a, R: BufRead> DeserializerTrait<'a> for &mut Deserializer<'a, R> {
 
     fn deserialize_ignored_any<V: Visitor<'a>>(self, visitor: V) -> Result<V::Value> {
         self.deserialize_any(visitor)
+    }
+}
+
+/// Struct responsible for deserializing a sequence of data to structs and tuples.
+struct SimpleSeqAccess<'a, 'b, R: BufRead>(&'b mut Deserializer<'a, R>);
+
+impl<'a, 'b, R: BufRead> SeqAccess<'a> for SimpleSeqAccess<'a, 'b, R> {
+    type Error = Error;
+
+    fn next_element_seed<T: DeserializeSeed<'a>>(&mut self, seed: T) -> Result<Option<T::Value>> {
+        seed.deserialize(&mut *self.0).map(Some)
     }
 }
 
@@ -270,7 +281,7 @@ impl<'a, R: BufRead> VariantAccess<'a> for &mut Deserializer<'a, R> {
     }
 
     fn tuple_variant<V: Visitor<'a>>(self, _: usize, seed: V) -> Result<V::Value> {
-        seed.visit_seq(self)
+        seed.visit_seq(SimpleSeqAccess(self))
     }
 
     fn struct_variant<V: Visitor<'a>>(
@@ -278,7 +289,7 @@ impl<'a, R: BufRead> VariantAccess<'a> for &mut Deserializer<'a, R> {
         _: &'static [&'static str],
         seed: V,
     ) -> Result<V::Value> {
-        seed.visit_seq(self)
+        seed.visit_seq(SimpleSeqAccess(self))
     }
 }
 
@@ -575,7 +586,7 @@ mod tests {
     #[test]
     fn deserialize_advanced_struct() {
         test!(
-            AdvancedStruct,
+            Advanced,
             "1 2\n3 4 5\n6 7 8\n\n9 Unit\n10 Tuple 11 12 13\n\n14 15 16 17 18",
             new_advanced_struct()
         );

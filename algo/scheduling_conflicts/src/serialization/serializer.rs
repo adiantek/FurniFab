@@ -16,6 +16,11 @@ impl Serializer {
         Self(String::with_capacity(capacity))
     }
 
+    /// Finishes serialization and returns serialized data.
+    pub fn finish(self) -> String {
+        self.0
+    }
+
     fn ensure_new_line(&mut self) {
         if !self.0.is_empty() && !self.0.ends_with('\n') {
             if self.0.ends_with(' ') {
@@ -274,7 +279,7 @@ impl SerializeMap for &mut Serializer {
     }
 
     fn serialize_value<T: ?Sized + Serialize>(&mut self, value: &T) -> Result<()> {
-        self.0.push(' ');
+        self.ensure_white_space();
         value.serialize(&mut **self)
     }
 
@@ -483,7 +488,7 @@ mod tests {
     #[test]
     fn serialize_advanced_struct() {
         test!(
-            AdvancedStruct,
+            Advanced,
             new_advanced_struct(),
             "1 2\n3 4 5\n6 7 8\n\n9 Unit\n10 Tuple 11 12 13\n\n14 15 16 17 18"
         );
