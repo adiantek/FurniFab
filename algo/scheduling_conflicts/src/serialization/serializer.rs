@@ -315,145 +315,92 @@ impl SerializeStructVariant for &mut Serializer {
 
 #[cfg(test)]
 mod tests {
+    use super::super::tests::*;
     use super::*;
     use std::collections::BTreeMap;
 
-    #[derive(Serialize)]
-    struct TupleStruct(i32, i32, i32);
-
-    #[derive(Serialize)]
-    enum Enum {
-        Unit,
-        Tuple(i32, i32, i32),
-        Struct { a: i32, b: i32, c: i32 },
-    }
-
-    #[derive(Serialize)]
-    struct Struct {
-        a: i32,
-        b: i32,
-        c: i32,
-    }
-
-    #[derive(Serialize)]
-    struct AdvancedStruct {
-        a: i32,
-        b: String,
-        c: Vec<Struct>,
-        d: BTreeMap<u64, Enum>,
-        e: (u64, u8, Struct),
+    macro_rules! test {
+        ($ty:ty, $input:expr, $value:literal) => {
+            let mut serializer = Serializer::default();
+            <$ty>::serialize(&$input, &mut serializer).unwrap();
+            assert_eq!(serializer.0, $value);
+        };
     }
 
     #[test]
-    fn serialize_bool_true() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_bool(true).unwrap();
-        assert_eq!(serializer.0, "true");
-    }
-
-    #[test]
-    fn serialize_bool_false() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_bool(false).unwrap();
-        assert_eq!(serializer.0, "false");
+    fn serialize_bool() {
+        test!(bool, true, "true");
+        test!(bool, false, "false");
     }
 
     #[test]
     fn serialize_i8() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_i8(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(i8, 1, "1");
     }
 
     #[test]
     fn serialize_i16() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_i16(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(i16, 1, "1");
     }
 
     #[test]
     fn serialize_i32() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_i32(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(i32, 1, "1");
     }
 
     #[test]
     fn serialize_i64() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_i64(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(i64, 1, "1");
     }
 
     #[test]
     fn serialize_i128() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_i128(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(i128, 1, "1");
     }
 
     #[test]
     fn serialize_u8() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_u8(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(u8, 1, "1");
     }
 
     #[test]
     fn serialize_u16() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_u16(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(u16, 1, "1");
     }
 
     #[test]
     fn serialize_u32() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_u32(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(u32, 1, "1");
     }
 
     #[test]
     fn serialize_u64() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_u64(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(u64, 1, "1");
     }
 
     #[test]
     fn serialize_u128() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_u128(1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(u128, 1, "1");
     }
 
     #[test]
     fn serialize_f32() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_f32(1.5).unwrap();
-        assert_eq!(serializer.0, "1.5");
+        test!(f32, 1.5, "1.5");
     }
 
     #[test]
     fn serialize_f64() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_f64(1.5).unwrap();
-        assert_eq!(serializer.0, "1.5");
+        test!(f64, 1.5, "1.5");
     }
 
     #[test]
     fn serialize_char() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_char('a').unwrap();
-        assert_eq!(serializer.0, "a");
+        test!(char, 'a', "a");
     }
 
     #[test]
     fn serialize_str() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_str("ab").unwrap();
-        assert_eq!(serializer.0, "ab");
+        test!(&str, "abc", "abc");
     }
 
     #[test]
@@ -465,132 +412,79 @@ mod tests {
 
     #[test]
     fn serialize_none() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_none().unwrap();
-        assert_eq!(serializer.0, "-");
+        test!(Option<i32>, None, "-");
     }
 
     #[test]
     fn serialize_some() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_some(&1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(Option<i32>, Some(1), "1");
     }
 
     #[test]
     fn serialize_unit() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_unit().unwrap();
-        assert_eq!(serializer.0, "-");
+        test!((), (), "-");
     }
 
     #[test]
     fn serialize_unit_struct() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_unit_struct("Unit").unwrap();
-        assert_eq!(serializer.0, "-");
+        test!(UnitStruct, UnitStruct, "-");
     }
 
     #[test]
     fn serialize_newtype_struct() {
-        let mut serializer = Serializer::default();
-        serializer.serialize_newtype_struct("Newtype", &1).unwrap();
-        assert_eq!(serializer.0, "1");
+        test!(NewType, NewType(1), "1");
     }
 
     #[test]
     fn serialize_newtype_variant() {
-        let mut serializer = Serializer::default();
-        serializer
-            .serialize_newtype_variant("Newtype", 0, "Variant", &1)
-            .unwrap();
-        assert_eq!(serializer.0, "Variant 1");
+        test!(Enum, Enum::NewType(1), "NewType 1");
     }
 
     #[test]
     fn serialize_seq() {
-        let mut serializer = Serializer::default();
-        let sequence = vec![1, 2, 3];
-        Serialize::serialize(&sequence, &mut serializer).unwrap();
-        assert_eq!(serializer.0, "1\n2\n3\n\n");
+        test!(Vec<i32>, vec![1, 2, 3], "1\n2\n3\n\n");
     }
 
     #[test]
     fn serialize_tuple() {
-        let mut serializer = Serializer::default();
-        let tuple = (1, 2, 3);
-        Serialize::serialize(&tuple, &mut serializer).unwrap();
-        assert_eq!(serializer.0, "1 2 3");
+        test!((u8, u8, u8), (1, 2, 3), "1 2 3");
     }
 
     #[test]
     fn serialize_tuple_struct() {
-        let mut serializer = Serializer::default();
-        let tuple_struct = TupleStruct(1, 2, 3);
-        Serialize::serialize(&tuple_struct, &mut serializer).unwrap();
-        assert_eq!(serializer.0, "1 2 3");
+        test!(TupleStruct, TupleStruct(1, 2, 3), "1 2 3");
     }
 
     #[test]
     fn serialize_unit_variant() {
-        let mut serializer = Serializer::default();
-        let unit_variant = Enum::Unit;
-        Serialize::serialize(&unit_variant, &mut serializer).unwrap();
-        assert_eq!(serializer.0, "Unit");
+        test!(Enum, Enum::Unit, "Unit");
     }
 
     #[test]
     fn serialize_tuple_variant() {
-        let mut serializer = Serializer::default();
-        let tuple_variant = Enum::Tuple(1, 2, 3);
-        Serialize::serialize(&tuple_variant, &mut serializer).unwrap();
-        assert_eq!(serializer.0, "Tuple 1 2 3");
+        test!(Enum, Enum::Tuple(1, 2, 3), "Tuple 1 2 3");
     }
 
     #[test]
     fn serialize_map() {
-        let mut serializer = Serializer::default();
-        let mut map = BTreeMap::new();
-        map.insert(1, 2);
-        map.insert(3, 4);
-        Serialize::serialize(&map, &mut serializer).unwrap();
-        assert_eq!(serializer.0, "1 2\n3 4\n\n");
+        test!(BTreeMap<i32, i32>, BTreeMap::from([(1, 2), (3, 4)]), "1 2\n3 4\n\n");
     }
 
     #[test]
     fn serialize_struct() {
-        let mut serializer = Serializer::default();
-        let struct_ = Struct { a: 1, b: 2, c: 3 };
-        Serialize::serialize(&struct_, &mut serializer).unwrap();
-        assert_eq!(serializer.0, "1 2 3");
+        test!(Struct, Struct { a: 1, b: 2, c: 3 }, "1 2 3");
     }
 
     #[test]
     fn serialize_struct_variant() {
-        let mut serializer = Serializer::default();
-        let struct_variant = Enum::Struct { a: 1, b: 2, c: 3 };
-        Serialize::serialize(&struct_variant, &mut serializer).unwrap();
-        assert_eq!(serializer.0, "Struct 1 2 3");
+        test!(Enum, Enum::Struct { a: 1, b: 2, c: 3 }, "Struct 1 2 3");
     }
 
     #[test]
     fn serialize_advanced_struct() {
-        let mut serializer = Serializer::default();
-        let advanced_struct = AdvancedStruct {
-            a: 1,
-            b: "2".to_string(),
-            c: vec![Struct { a: 3, b: 4, c: 5 }, Struct { a: 6, b: 7, c: 8 }],
-            d: {
-                let mut map = BTreeMap::new();
-                map.insert(9, Enum::Unit);
-                map.insert(10, Enum::Tuple(11, 12, 13));
-                map
-            },
-            e: (14, 15, Struct { a: 16, b: 17, c: 18 }),
-        };
-        Serialize::serialize(&advanced_struct, &mut serializer).unwrap();
-        assert_eq!(
-            serializer.0,
+        test!(
+            AdvancedStruct,
+            new_advanced_struct(),
             "1 2\n3 4 5\n6 7 8\n\n9 Unit\n10 Tuple 11 12 13\n\n14 15 16 17 18"
         );
     }
