@@ -2,12 +2,12 @@ mod deserializer;
 mod error;
 mod serializer;
 
-use error::Error;
+pub use error::Error;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::io::{stdin, BufRead};
 
-type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 /// Deserialize a value from buffered input.
 pub fn deserialize<'de, I: BufRead, T: Deserialize<'de>>(input: &'de mut I) -> Result<T> {
