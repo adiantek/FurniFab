@@ -57,12 +57,10 @@ impl From<Vec<Conflict>> for ConflictGraph {
 
 /// An instance of the scheduling problem.
 #[non_exhaustive]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Instance {
     pub processors: usize,
     pub deadline: u64,
-    #[serde(skip_serializing)]
     pub tasks: Vec<Task>,
-    #[serde(skip_serializing)]
     pub graph: ConflictGraph,
 }

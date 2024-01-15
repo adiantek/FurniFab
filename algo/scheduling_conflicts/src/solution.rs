@@ -6,8 +6,8 @@ use std::collections::BTreeMap;
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Serialize, PartialEq)]
 pub struct ScheduleInfo {
-    pub start_time: u64,
     pub processor: usize,
+    pub start_time: u64,
 }
 
 impl ScheduleInfo {
@@ -23,6 +23,7 @@ impl ScheduleInfo {
 /// A schedule. Contains the schedule info for every task.
 #[derive(Clone, Debug, Serialize)]
 pub struct Schedule<'a> {
+    #[serde(skip)]
     instance: &'a Instance,
     schedule: Vec<Option<ScheduleInfo>>,
 }
@@ -57,6 +58,24 @@ impl<'a> Schedule<'a> {
                 false
             }
         })
+    }
+
+    /// Returns start time for a task that is not in conflict with another task.
+    pub fn available_start_time(&self, task: usize) -> u64 {
+        self.instance
+            .graph
+            .conflicts(task)
+            .iter()
+            .filter_map(|&other| {
+                if let Some(schedule_info) = self.schedule[other] {
+                    let task = &self.instance.tasks[other];
+                    Some(schedule_info.start_time + task.processing_time)
+                } else {
+                    None
+                }
+            })
+            .reduce(|a, b| a.max(b))
+            .unwrap_or(0)
     }
 
     /// Calculates the score of the schedule.
