@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { type CommandOutput, runExecutable } from '@/api'
+import ScheduleChart from '@/components/ScheduleChart.vue'
 
 document.documentElement.setAttribute('data-bs-theme', 'dark')
 
@@ -35,6 +36,7 @@ async function onButtonClick(exec: string) {
     <div>{{ commandResult?.stdout }}</div>
     <div>{{ commandResult?.stderr }}</div>
     <div>{{ commandResult?.error }}</div>
+    <ScheduleChart />
   </div>
   <BToaster />
 </template>
