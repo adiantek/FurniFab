@@ -10,5 +10,6 @@ declare module 'vue' {
     BToaster: typeof import('bootstrap-vue-next')['BToaster']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ScheduleComponent: typeof import('./src/components/ScheduleComponent.vue')['default']
   }
 }
