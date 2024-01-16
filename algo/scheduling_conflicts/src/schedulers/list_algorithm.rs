@@ -31,14 +31,14 @@ pub fn list_algorithm(instance: &Instance) -> Schedule {
                     schedule_info.start_time + task.processing_time,
                     schedule_info.processor,
                 ));
+                continue;
             }
-            continue;
         }
 
         let non_conflict_time = schedule.available_start_time(id);
 
         if non_conflict_time + task.processing_time <= instance.deadline {
-            let mut machine_iter = machines.iter();
+            let mut machine_iter = machines.iter().rev();
             let mut picked_machine = None;
             while let Some((time, machine)) = machine_iter.next_back() {
                 if *time < non_conflict_time {

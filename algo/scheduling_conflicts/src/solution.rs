@@ -51,9 +51,10 @@ impl<'a> Schedule<'a> {
     pub fn in_conflict(&self, task: usize, start_time: u64) -> bool {
         self.instance.graph.conflicts(task).iter().any(|&other| {
             if let Some(schedule_info) = self.schedule[other] {
-                let task = &self.instance.tasks[other];
-                schedule_info.start_time <= start_time
-                    && start_time < schedule_info.start_time + task.processing_time
+                let task = &self.instance.tasks[task];
+                let other = &self.instance.tasks[other];
+                start_time < schedule_info.start_time + other.processing_time
+                    && schedule_info.start_time < start_time + task.processing_time
             } else {
                 false
             }

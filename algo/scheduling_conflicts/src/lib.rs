@@ -1,5 +1,5 @@
 mod problem;
-mod schedulers;
+pub mod schedulers;
 pub mod serialization;
 mod solution;
 
