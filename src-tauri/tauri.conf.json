@@ -39,8 +39,7 @@
       },
       "resources": {
         "../algo/F2,rj,pmtn,Cmax/dist/pa.exe": "",
-        "../algo/F2,rj,pmtn,Cmax/file_pa.txt": "",
-        "../algo/scheduling_conflicts/target/release/list_algorithm.exe": "scheduling_conflict"
+        "../algo/F2,rj,pmtn,Cmax/file_pa.txt": ""
       },
       "shortDescription": "",
       "targets": "all",

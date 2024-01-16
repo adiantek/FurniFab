@@ -15,9 +15,6 @@ async function onButtonClick(exec: string) {
 <template>
   <div class="h-100 w-100 d-flex flex-column align-items-center justify-content-center">
     <button @click="() => onButtonClick('pa.exe')">Run F2</button>
-    <button @click="() => onButtonClick('scheduling_conflicts.exe')">
-      Run scheduling with conflicts
-    </button>
     <div>{{ commandResult?.stdout }}</div>
     <div>{{ commandResult?.stderr }}</div>
     <div>{{ commandResult?.error }}</div>
