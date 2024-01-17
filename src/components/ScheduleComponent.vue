@@ -48,16 +48,9 @@ const options = computed(() => {
 </script>
 
 <template>
-  <div class="chart-container">
+  <div class="w-75 p-5">
     <GChart :settings="settings" type="Timeline" :data="data" :options="options" />
   </div>
 </template>
 
-<style scoped>
-.chart-container {
-  width: 100%;
-  max-width: 800px;
-  padding: 10px;
-  box-sizing: border-box;
-}
-</style>
+<style scoped></style>

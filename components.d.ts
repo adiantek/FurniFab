@@ -7,9 +7,16 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AddBusinessTaskComponent: typeof import('./src/components/AddBusinessTaskComponent.vue')['default']
+    BButton: typeof import('bootstrap-vue-next')['BButton']
+    BFormSelect: typeof import('bootstrap-vue-next')['BFormSelect']
     BToaster: typeof import('bootstrap-vue-next')['BToaster']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScheduleComponent: typeof import('./src/components/ScheduleComponent.vue')['default']
+    TrashIconComponent: typeof import('./src/components/TrashIconComponent.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    vBModal: typeof import('bootstrap-vue-next')['vBModal']
   }
 }
