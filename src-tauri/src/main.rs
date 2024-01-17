@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use scheduling_conflicts::{schedulers, Instance};
 use serde::Serialize;
 use tauri::api::process::{Command, CommandEvent};
 use tauri::AppHandle;
@@ -51,9 +52,19 @@ async fn run_resource(handle: AppHandle, exec: String, stdin: String) -> Result<
     Ok(output)
 }
 
+#[tauri::command]
+fn run_scheduling_conflicts(instance: Instance) -> Result<String> {
+    let schedule = schedulers::list_algorithm(&instance);
+    let score = schedule.calculate_score();
+    serde_json::to_string(&(schedule, score)).map_err(|err| err.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![run_resource])
+        .invoke_handler(tauri::generate_handler![
+            run_resource,
+            run_scheduling_conflicts
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
