@@ -4,7 +4,7 @@ import type { BusinessTask } from '@/interface'
 import { BModal } from 'bootstrap-vue-next'
 
 const callback = defineEmits<{
-  onNewTask: BusinessTask
+  onNewTask: [BusinessTask]
 }>()
 
 const props = defineProps<{
@@ -40,7 +40,7 @@ function save() {
   conflicts.value = []
 }
 
-const validTask = computed<bool>(() => {
+const validTask = computed(() => {
   return name.value && processTime.value && weight.value && name.value.length > 0
 })
 </script>

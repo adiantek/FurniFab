@@ -24,7 +24,3 @@ coverage
 *.njsproj
 *.sln
 *.sw?
-
-# Pyinstaller
-build
-*.spec

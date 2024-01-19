@@ -41,3 +41,7 @@ export async function scheduleWithConflicts(instance: Instance): Promise<Schedul
   const scheduleString = await invoke('run_scheduling_conflicts', { instance })
   return await JSON.parse(scheduleString as string)
 }
+
+export async function runFlow(): Promise<string> {
+  return invoke('run_flow')
+}

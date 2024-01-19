@@ -1,7 +1,7 @@
 {
   "build": {
-    "beforeBuildCommand": "npm run build:all",
-    "beforeDevCommand": "npm run dev:tauri",
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
     "devPath": "http://localhost:5173",
     "distDir": "../dist"
   },
@@ -37,10 +37,7 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": {
-        "../algo/F2,rj,pmtn,Cmax/dist/pa.exe": "",
-        "../algo/F2,rj,pmtn,Cmax/file_pa.txt": ""
-      },
+      "resources": [],
       "shortDescription": "",
       "targets": "all",
       "windows": {
@@ -58,10 +55,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 800,
         "resizable": true,
         "title": "FurniFab",
-        "width": 800
+        "width": 1000
       }
     ]
   }
