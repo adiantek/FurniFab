@@ -28,7 +28,6 @@ function remove(id: number) {
 
 <template>
   <div class="h-100 w-100 d-flex flex-column align-items-center justify-content-center pt-5">
-    <CreateBusinessTaskButtonComponent class="mb-2" />
     <BModal v-model="isEditing" hideFooter title="Edycja zadania">
       <BusinessTaskEditorComponent v-model="editingTask" />
     </BModal>
