@@ -9,9 +9,10 @@ document.documentElement.setAttribute('data-bs-theme', 'dark')
         <router-link to="/" class="nav-link" active-class="active">Home</router-link>
       </div>
       <div class="nav-item">
-        <router-link to="/conflict" class="nav-link" active-class="active">
-          Schedule conflict
-        </router-link>
+        <router-link to="/tasks" class="nav-link" active-class="active">Zadania</router-link>
+      </div>
+      <div class="nav-item">
+        <router-link to="/conflict" class="nav-link" active-class="active">Wycinanie</router-link>
       </div>
       <div class="nav-item">
         <router-link to="/demo" class="nav-link" active-class="active">Demo</router-link>

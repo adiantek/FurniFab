@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { BusinessTask } from '@/interface'
+import type { BusinessTask } from '@/composables/TaskComposable'
 import { BModal } from 'bootstrap-vue-next'
 
 const callback = defineEmits<{
@@ -28,9 +28,11 @@ function save() {
   callback('onNewTask', {
     id: props.nextId,
     name: name.value!,
-    processTime: processTime.value!,
-    weight: weight.value!,
-    conflicts: conflicts.value
+    cuttingInfo: {
+      processTime: processTime.value!,
+      weight: weight.value!,
+      conflicts: conflicts.value
+    }
   })
 
   showingModal.value = false
