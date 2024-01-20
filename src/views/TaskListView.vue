@@ -1,25 +1,18 @@
 <script setup lang="ts">
-import {
-  type BusinessTask,
-  getTask,
-  nextTaskId,
-  useBusinessTasks
-} from '@/composables/TaskComposable'
+import { type BusinessTask, getTask, useBusinessTasks } from '@/composables/TaskComposable'
+import { ref } from 'vue'
 
 const businessTasks = useBusinessTasks()
 
-function onNewTask(task: BusinessTask) {
-  businessTasks.value.push(task)
+const editingTask = ref<BusinessTask | undefined>()
+const isEditing = ref<boolean>(false)
 
-  for (const conflictId of task.cuttingInfo.conflicts) {
-    const conflictTask = getTask(conflictId)!
-    conflictTask.cuttingInfo.conflicts.push(task.id)
-  }
-
-  nextTaskId.value++
+function edit(id: number) {
+  editingTask.value = getTask(id)
+  isEditing.value = true
 }
 
-function deleteTask(id: number) {
+function remove(id: number) {
   const task = getTask(id)!
 
   for (const conflictId of task.cuttingInfo.conflicts) {
@@ -35,20 +28,19 @@ function deleteTask(id: number) {
 
 <template>
   <div class="h-100 w-100 d-flex flex-column align-items-center justify-content-center pt-5">
-    <AddBusinessTaskComponent
-      :businessTasks="businessTasks"
-      class="mb-2"
-      @onNewTask="onNewTask"
-      :nextId="nextTaskId"
-    />
-
+    <CreateBusinessTaskButtonComponent class="mb-2" />
+    <BModal v-model="isEditing" hideFooter title="Edycja zadania">
+      <BusinessTaskEditorComponent v-model="editingTask" />
+    </BModal>
     <div class="container overflow-auto min-px-100 p-0 border">
-      <table class="table table-dark table-bordered table-sm m-0">
+      <table class="table table-dark table-bordered m-0">
         <thead>
           <tr>
             <th>Id</th>
             <th>Nazwa</th>
-            <th>Czas trwania</th>
+            <th>Wycinanie</th>
+            <th>Szlifowanie</th>
+            <th>Lakierowanie</th>
             <th>Waga</th>
             <th>Konflikty</th>
             <th></th>
@@ -58,7 +50,9 @@ function deleteTask(id: number) {
           <tr v-for="task in businessTasks" :key="task.name">
             <td>{{ task.id }}</td>
             <td>{{ task.name }}</td>
-            <td>{{ task.cuttingInfo.processTime }}</td>
+            <td>{{ task.cuttingInfo.processTime }} minut</td>
+            <td>{{ task.flowInfo.grindingProcessTime }} minut</td>
+            <td>{{ task.flowInfo.lacqueringProcessTime }} minut</td>
             <td>{{ task.cuttingInfo.weight }}</td>
             <td>
               {{
@@ -68,11 +62,11 @@ function deleteTask(id: number) {
               }}
             </td>
             <td>
-              <button
-                class="btn btn-danger btn-sm m-1 float-end"
-                @click="() => deleteTask(task.id)"
-              >
+              <button class="btn btn-danger btn-sm m-1 float-end" @click="() => remove(task.id)">
                 <TrashIconComponent />
+              </button>
+              <button class="btn btn-success btn-sm m-1 float-end" @click="() => edit(task.id)">
+                <EditIconComponent />
               </button>
             </td>
           </tr>

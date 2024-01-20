@@ -17,6 +17,7 @@ document.documentElement.setAttribute('data-bs-theme', 'dark')
       <div class="nav-item">
         <router-link to="/demo" class="nav-link" active-class="active">Demo</router-link>
       </div>
+      <CreateBusinessTaskButtonComponent />
     </nav>
     <router-view />
   </div>

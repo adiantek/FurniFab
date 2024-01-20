@@ -7,9 +7,12 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    AddBusinessTaskComponent: typeof import('./src/components/AddBusinessTaskComponent.vue')['default']
     BFormSelect: typeof import('bootstrap-vue-next')['BFormSelect']
+    BModal: typeof import('bootstrap-vue-next')['BModal']
     BToaster: typeof import('bootstrap-vue-next')['BToaster']
+    BusinessTaskEditorComponent: typeof import('./src/components/BusinessTaskEditorComponent.vue')['default']
+    CreateBusinessTaskButtonComponent: typeof import('./src/components/CreateBusinessTaskButtonComponent.vue')['default']
+    EditIconComponent: typeof import('./src/components/EditIconComponent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScheduleComponent: typeof import('./src/components/ScheduleComponent.vue')['default']
