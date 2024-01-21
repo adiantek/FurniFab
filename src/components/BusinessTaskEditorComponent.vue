@@ -37,7 +37,7 @@ watch(
 </script>
 
 <template>
-  <div v-if="model" class="form-group p-1">
+  <div v-if="model" class="p-1">
     <div class="input-group mb-2">
       <label class="input-group-text">Nazwa</label>
       <input v-model="model.name" type="text" class="form-control" minlength="1" />

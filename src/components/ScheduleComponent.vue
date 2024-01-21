@@ -48,9 +48,14 @@ const options = computed(() => {
 </script>
 
 <template>
-  <div class="w-75 p-5">
-    <GChart :settings="settings" type="Timeline" :data="data" :options="options" />
-  </div>
+  <GChart
+    :settings="settings"
+    type="Timeline"
+    :data="data"
+    :options="options"
+    class="w-100 p-1"
+    style="height: 200px"
+  />
 </template>
 
 <style scoped></style>

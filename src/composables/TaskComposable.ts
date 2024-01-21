@@ -11,7 +11,7 @@ export interface CuttingInfo {
   conflicts: number[]
   processTime: number
   weight: number
-  startingTime?: number
+  startingTime?: Date
   machine?: number
 }
 
@@ -93,4 +93,8 @@ export function useBusinessTasks(): Ref<BusinessTask[]> {
 
 export function getTask(id: number): BusinessTask | undefined {
   return businessTasks.value.find((task) => task.id === id)
+}
+
+export function getTaskIndex(list: BusinessTask[], id: number): number {
+  return list.findIndex((task) => task.id === id)
 }

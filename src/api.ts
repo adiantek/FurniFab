@@ -31,13 +31,11 @@ export interface Schedule {
   schedule: (ScheduleInfo | null)[]
 }
 
-export type ScheduleWithScore = [Schedule, number]
-
 export function runExecutable(exec: string, stdin: string): Promise<CommandOutput> {
   return invoke('run_resource', { exec, stdin })
 }
 
-export async function scheduleWithConflicts(instance: Instance): Promise<ScheduleWithScore> {
+export async function scheduleConflicts(instance: Instance): Promise<Schedule> {
   const scheduleString = await invoke('run_scheduling_conflicts', { instance })
   return await JSON.parse(scheduleString as string)
 }

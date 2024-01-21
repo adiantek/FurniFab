@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AdvancedDatePickerComponent: typeof import('./src/components/AdvancedDatePickerComponent.vue')['default']
     BFormSelect: typeof import('bootstrap-vue-next')['BFormSelect']
     BModal: typeof import('bootstrap-vue-next')['BModal']
     BToaster: typeof import('bootstrap-vue-next')['BToaster']

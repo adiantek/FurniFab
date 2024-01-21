@@ -19,7 +19,12 @@ document.documentElement.setAttribute('data-bs-theme', 'dark')
       </div>
       <CreateBusinessTaskButtonComponent />
     </nav>
-    <router-view />
+    <div
+      class="w-100 d-flex flex-column align-items-center p-4 m-auto"
+      style="height: calc(100% - 42px); max-width: 1400px;"
+    >
+      <router-view />
+    </div>
   </div>
   <BToaster />
 </template>
