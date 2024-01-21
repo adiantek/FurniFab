@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { GChart } from 'vue-google-charts'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 export interface ScheduledTask {
   machine: number
@@ -14,10 +14,18 @@ const settings: { packages: any[] } = {
   packages: ['timeline']
 }
 
-const props = defineProps<{
-  tasks: ScheduledTask[]
-  chartOptions?: any
-}>()
+const props = withDefaults(
+  defineProps<{
+    tasks: ScheduledTask[]
+    machineNameFormatter: (machine: number) => string
+    chartOptions?: any
+  }>(),
+  {
+    machineNameFormatter: (machine: number) => `Pracownik ${machine}`
+  }
+)
+
+const width = ref<number>(1500)
 
 const data = computed(() => {
   const data: unknown[][] = [
@@ -31,7 +39,13 @@ const data = computed(() => {
   ]
 
   for (const task of props.tasks) {
-    data.push([`Maszyna ${task.machine}`, task.name, task.tooltip ?? null, task.start, task.end])
+    data.push([
+      props.machineNameFormatter(task.machine),
+      task.name,
+      task.tooltip ?? null,
+      task.start,
+      task.end
+    ])
   }
 
   return data
@@ -42,15 +56,44 @@ const options = computed(() => {
     hAxis: {
       format: 'HH:mm'
     },
+    width: width.value,
     ...props.chartOptions
   }
 })
+
+function zoomIn() {
+  width.value *= 1.2
+}
+
+function zoomOut() {
+  width.value *= 0.8
+}
+
+function zoomReset() {
+  width.value = 1500
+}
 </script>
 
 <template>
-  <div class="w-75 p-5">
-    <GChart :settings="settings" type="Timeline" :data="data" :options="options" />
+  <div class="input-group m-2">
+    <button class="btn btn-secondary ms-auto me-1" @click="zoomIn">
+      <ZoomInIconComponent />
+    </button>
+    <button class="btn btn-secondary my-auto" @click="zoomOut">
+      <ZoomOutIconComponent />
+    </button>
+    <button class="btn btn-secondary m-auto ms-1" @click="zoomReset">
+      <ZoomResetIconComponent />
+    </button>
   </div>
+  <GChart
+    :settings="settings"
+    type="Timeline"
+    :data="data"
+    :options="options"
+    class="w-100 p-1 overflow-x-auto overflow-y-hidden"
+    style="height: 200px"
+  />
 </template>
 
 <style scoped></style>

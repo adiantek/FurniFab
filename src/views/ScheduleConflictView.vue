@@ -1,64 +1,74 @@
 <script setup lang="ts">
 import ScheduleComponent, { type ScheduledTask } from '@/components/ScheduleComponent.vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import {
   type Conflict,
   type ConflictGraph,
   type Instance,
-  scheduleWithConflicts,
-  type Task
+  scheduleConflicts,
+  type ConflictTask
 } from '@/api'
-import type { BusinessTask } from '@/interface'
+import {
+  type BusinessTask,
+  getTask,
+  getTaskIndex,
+  useBusinessTasks
+} from '@/composables/TaskComposable'
+import { isSameDay, plusMinutes } from '@/utils'
 
-const deadline = 4 * 60
-const startDate = new Date()
-startDate.setHours(8, 0, 0, 0)
+const deadline = 8 * 60
+
+const businessTasks = useBusinessTasks()
 
 const processors = ref<number>(3)
-const businessTasks = ref<BusinessTask[]>([
-  { id: 0, name: 'Zadanie 0', processTime: 75, weight: 8, conflicts: [5, 1] },
-  { id: 1, name: 'Zadanie 1', processTime: 60, weight: 1, conflicts: [0, 6, 7] },
-  { id: 2, name: 'Zadanie 2', processTime: 70, weight: 4, conflicts: [3, 4, 7] },
-  { id: 3, name: 'Zadanie 3', processTime: 40, weight: 3, conflicts: [2, 7] },
-  { id: 4, name: 'Zadanie 4', processTime: 65, weight: 7, conflicts: [2, 5, 9] },
-  { id: 5, name: 'Zadanie 5', processTime: 100, weight: 11, conflicts: [0, 4, 9] },
-  { id: 6, name: 'Zadanie 6', processTime: 30, weight: 2, conflicts: [1] },
-  { id: 7, name: 'Zadanie 7', processTime: 120, weight: 5, conflicts: [1, 2, 3] },
-  { id: 8, name: 'Zadanie 8', processTime: 40, weight: 1, conflicts: [9] },
-  { id: 9, name: 'Zadanie 9', processTime: 75, weight: 3, conflicts: [4, 5, 8] }
-])
-const nextTaskId = ref<number>(10)
-const tasks = ref<ScheduledTask[]>([])
-const tasksWithoutSchedule = ref<BusinessTask[]>([])
-const score = ref<number | undefined>()
+const date = ref<Date>(new Date(new Date().setHours(8, 0, 0, 0)))
 
-function getTaskIndex(id: number): number {
-  return businessTasks.value.findIndex((task) => task.id === id)
+const todayTasks = computed<BusinessTask[]>(() =>
+  businessTasks.value
+    .filter((task) => task.cuttingInfo.startingTime !== undefined)
+    .filter((task) => isSameDay(date.value, task.cuttingInfo.startingTime!))
+)
+const mappedTasks = computed<ScheduledTask[]>(() =>
+  todayTasks.value
+    .map((task) => ({
+      machine: task.cuttingInfo.machine!,
+      name: task.name,
+      start: task.cuttingInfo.startingTime!,
+      end: plusMinutes(task.cuttingInfo.startingTime!, task.cuttingInfo.processTime)
+    }))
+    .sort((first, second) => first.machine - second.machine)
+)
+const notScheduledTasks = computed<BusinessTask[]>(() =>
+  businessTasks.value.filter((task) => task.cuttingInfo.startingTime === undefined)
+)
+const score = computed<number>(() =>
+  todayTasks.value.reduce((acc, task) => acc + task.cuttingInfo.weight, 0)
+)
+
+function reset() {
+  for (let task of businessTasks.value) {
+    const info = task.cuttingInfo
+    if (info.startingTime !== undefined && isSameDay(date.value, info.startingTime)) {
+      task.cuttingInfo.startingTime = undefined
+      task.cuttingInfo.machine = undefined
+    }
+  }
 }
 
-function getTask(id: number): BusinessTask | undefined {
-  return businessTasks.value.find((task) => task.id === id)
-}
+async function schedule() {
+  const tasks = [...notScheduledTasks.value]
 
-function resetSchedule() {
-  tasks.value = []
-  tasksWithoutSchedule.value = []
-  score.value = undefined
-}
-
-async function callBackend() {
-  tasks.value = []
-  tasksWithoutSchedule.value = []
-
-  const apiTasks: Task[] = businessTasks.value.map((task) => ({
-    processing_time: task.processTime,
-    weight: task.weight
+  const apiTasks: ConflictTask[] = tasks.map((task) => ({
+    processing_time: task.cuttingInfo.processTime,
+    weight: task.cuttingInfo.weight
   }))
 
-  const graph: ConflictGraph = businessTasks.value.flatMap((task, index) =>
-    task.conflicts
+  const graph: ConflictGraph = tasks.flatMap((task, index) =>
+    task.cuttingInfo.conflicts
       .filter((other) => other > task.id)
-      .map((conflictId) => [index, getTaskIndex(conflictId)] as Conflict)
+      .map((conflict) => getTaskIndex(tasks, conflict))
+      .filter((conflict) => conflict !== -1)
+      .map((conflict) => [index, conflict] as Conflict)
   )
 
   const instance: Instance = {
@@ -68,118 +78,76 @@ async function callBackend() {
     graph
   }
 
-  let [schedule, newScore] = await scheduleWithConflicts(instance)
-
-  score.value = newScore
+  const schedule = await scheduleConflicts(instance)
 
   schedule.schedule.forEach((scheduleInfo, index) => {
-    const task = businessTasks.value[index]
-    if (scheduleInfo) {
-      tasks.value.push({
-        machine: scheduleInfo.processor,
-        name: task.name,
-        start: new Date(startDate.getTime() + scheduleInfo.start_time * 60000),
-        end: new Date(startDate.getTime() + (scheduleInfo.start_time + task.processTime) * 60000)
-      })
-    } else {
-      tasksWithoutSchedule.value.push(task)
+    if (scheduleInfo !== null) {
+      const info = tasks[index].cuttingInfo
+      info.startingTime = plusMinutes(date.value, scheduleInfo.start_time)
+      info.machine = scheduleInfo.processor
     }
   })
-
-  tasks.value.sort((a, b) => a.machine - b.machine)
-}
-
-function onNewTask(task: BusinessTask) {
-  businessTasks.value.push(task)
-
-  for (const conflictId of task.conflicts) {
-    const conflictTask = getTask(conflictId)!
-    conflictTask.conflicts.push(task.id)
-  }
-
-  nextTaskId.value++
-  resetSchedule()
-}
-
-function deleteTask(id: number) {
-  const task = getTask(id)!
-
-  for (const conflictId of task.conflicts) {
-    const conflictTask = getTask(conflictId)!
-    conflictTask.conflicts = conflictTask.conflicts.filter((conflictId) => conflictId !== id)
-  }
-
-  businessTasks.value = businessTasks.value.filter((task) => task.id !== id)
-  resetSchedule()
 }
 </script>
 
 <template>
-  <div
-    class="h-100 w-100 d-flex flex-column align-items-center justify-content-center pt-5 overflow-auto"
-  >
-    <AddBusinessTaskComponent
-      :businessTasks="businessTasks"
-      class="mb-2"
-      @onNewTask="onNewTask"
-      :nextId="nextTaskId"
-    />
-
-    <div class="container overflow-auto w-75 min-px-100 p-0 border">
-      <table class="table table-dark table-bordered table-sm m-0">
-        <thead>
-          <tr>
-            <th>Id</th>
-            <th>Nazwa</th>
-            <th>Czas trwania</th>
-            <th>Waga</th>
-            <th>Konflikty</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody class="scrollable">
-          <tr v-for="task in businessTasks" :key="task.name">
-            <td>{{ task.id }}</td>
-            <td>{{ task.name }}</td>
-            <td>{{ task.processTime }}</td>
-            <td>{{ task.weight }}</td>
-            <td>
-              {{ task.conflicts.map((conflictIndex) => getTask(conflictIndex)?.name).join(', ') }}
-            </td>
-            <td>
-              <button
-                class="btn btn-danger btn-sm m-1 float-end"
-                @click="() => deleteTask(task.id)"
-              >
-                <TrashIconComponent />
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="mt-3">
-      <label for="processors" class="form-label">Liczba procesorów: </label>
-      <input v-model="processors" name="processors" type="number" class="form-control mb-1" />
-    </div>
-    <div class="mt-3">
-      <button class="btn btn-primary m-1" @click="callBackend">Utwórz uszeregowanie</button>
-      <button class="btn btn-primary m-1" @click="resetSchedule">Resetuj</button>
-    </div>
-    <div v-if="tasksWithoutSchedule.length">
-      Zadanie nie objęte uszeregowaniem:
-      <ul>
-        <li v-for="task in tasksWithoutSchedule" :key="task.name">
-          {{ task.name }}
-        </li>
-      </ul>
-    </div>
-    <div>
-      <span v-if="score">Wynik: {{ score }}</span>
-    </div>
-    <ScheduleComponent v-if="tasks.length" :tasks="tasks" />
+  <h4 v-if="!!notScheduledTasks.length" class="m-3">Zadania bez uszeregowania:</h4>
+  <h4 v-else class="m-3">Wszystkie zadania są uszeregowane.</h4>
+  <div v-if="!!notScheduledTasks.length" class="d-flex overflow-auto min-px-100 p-0 border w-100 m-2">
+    <table class="table table-dark table-bordered m-0">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Nazwa</th>
+          <th>Czas wykonania</th>
+          <th>Waga</th>
+          <th>Konflikty</th>
+        </tr>
+      </thead>
+      <tbody class="scrollable">
+        <tr v-for="task in notScheduledTasks" :key="task.name">
+          <td>{{ task.id }}</td>
+          <td>{{ task.name }}</td>
+          <td>{{ task.cuttingInfo.processTime }} minut</td>
+          <td>{{ task.cuttingInfo.weight }}</td>
+          <td>
+            {{
+              task.cuttingInfo.conflicts
+                .map((conflictIndex) => getTask(conflictIndex)?.name)
+                .join(', ')
+            }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-</template>
 
-<style scoped></style>
+  <div class="card p-2">
+    <div class="input-group mb-1">
+      <label class="input-group-text">Liczba pracowników</label>
+      <input v-model="processors" type="number" class="form-control" min="1" />
+    </div>
+
+    <div class="card-group mb-1">
+      <button
+        class="btn btn-primary m-auto"
+        @click="schedule"
+        :disabled="!!mappedTasks.length || !notScheduledTasks.length"
+      >
+        Utwórz uszeregowanie
+      </button>
+      <button class="btn btn-primary m-auto" @click="reset" :disabled="!mappedTasks.length">
+        Resetuj
+      </button>
+    </div>
+
+    <AdvancedDatePickerComponent v-model="date" />
+  </div>
+
+  <div class="border mt-2 p-2 rounded" v-if="score">
+    Suma priorytetów uszeregowanych zadań: {{ score }}
+  </div>
+
+  <ScheduleComponent v-if="mappedTasks.length" :tasks="mappedTasks" />
+  <h4 v-else class="m-3">Brak zadań uszeregowanych tego dnia.</h4>
+</template>
