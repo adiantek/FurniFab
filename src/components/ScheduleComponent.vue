@@ -31,7 +31,7 @@ const data = computed(() => {
   ]
 
   for (const task of props.tasks) {
-    data.push([`Maszyna ${task.machine}`, task.name, task.tooltip ?? null, task.start, task.end])
+    data.push([`Pracownik ${task.machine}`, task.name, task.tooltip ?? null, task.start, task.end])
   }
 
   return data
