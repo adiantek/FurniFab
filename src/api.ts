@@ -6,7 +6,7 @@ export interface CommandOutput {
   error: string[]
 }
 
-export interface Task {
+export interface ConflictTask {
   processing_time: number
   weight: number
 }
@@ -18,7 +18,7 @@ export type ConflictGraph = Conflict[]
 export interface Instance {
   processors: number
   deadline: number
-  tasks: Task[]
+  tasks: ConflictTask[]
   graph: ConflictGraph
 }
 
@@ -31,6 +31,22 @@ export interface Schedule {
   schedule: (ScheduleInfo | null)[]
 }
 
+export interface FlowTask {
+  start_time: number
+  grinding_time: number
+  lacquering_time: number
+}
+
+export interface FlowScheduleInfo {
+  start_time: number
+  end_time: number
+}
+
+export interface FlowSchedule {
+  grinding: FlowScheduleInfo[][]
+  lacquering: FlowScheduleInfo[][]
+}
+
 export function runExecutable(exec: string, stdin: string): Promise<CommandOutput> {
   return invoke('run_resource', { exec, stdin })
 }
@@ -40,6 +56,6 @@ export async function scheduleConflicts(instance: Instance): Promise<Schedule> {
   return await JSON.parse(scheduleString as string)
 }
 
-export async function runFlow(): Promise<string> {
-  return invoke('run_flow')
+export function scheduleFlow(tasks: FlowTask[]): Promise<FlowSchedule> {
+  return invoke('run_flow', { tasks })
 }

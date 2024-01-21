@@ -18,5 +18,8 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     ScheduleComponent: typeof import('./src/components/ScheduleComponent.vue')['default']
     TrashIconComponent: typeof import('./src/components/TrashIconComponent.vue')['default']
+    ZoomInIconComponent: typeof import('./src/components/ZoomInIconComponent.vue')['default']
+    ZoomOutIconComponent: typeof import('./src/components/ZoomOutIconComponent.vue')['default']
+    ZoomResetIconComponent: typeof import('./src/components/ZoomResetIconComponent.vue')['default']
   }
 }

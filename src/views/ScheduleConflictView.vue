@@ -6,7 +6,7 @@ import {
   type ConflictGraph,
   type Instance,
   scheduleConflicts,
-  type Task
+  type ConflictTask
 } from '@/api'
 import {
   type BusinessTask,
@@ -16,7 +16,7 @@ import {
 } from '@/composables/TaskComposable'
 import { isSameDay, plusMinutes } from '@/utils'
 
-const deadline = 4 * 60
+const deadline = 8 * 60
 
 const businessTasks = useBusinessTasks()
 
@@ -58,7 +58,7 @@ function reset() {
 async function schedule() {
   const tasks = [...notScheduledTasks.value]
 
-  const apiTasks: Task[] = tasks.map((task) => ({
+  const apiTasks: ConflictTask[] = tasks.map((task) => ({
     processing_time: task.cuttingInfo.processTime,
     weight: task.cuttingInfo.weight
   }))
@@ -78,7 +78,7 @@ async function schedule() {
     graph
   }
 
-  let schedule = await scheduleConflicts(instance)
+  const schedule = await scheduleConflicts(instance)
 
   schedule.schedule.forEach((scheduleInfo, index) => {
     if (scheduleInfo !== null) {
@@ -129,7 +129,11 @@ async function schedule() {
     </div>
 
     <div class="card-group mb-1">
-      <button class="btn btn-primary m-auto" @click="schedule" :disabled="!!mappedTasks.length">
+      <button
+        class="btn btn-primary m-auto"
+        @click="schedule"
+        :disabled="!!mappedTasks.length || !notScheduledTasks.length"
+      >
         Utwórz uszeregowanie
       </button>
       <button class="btn btn-primary m-auto" @click="reset" :disabled="!mappedTasks.length">
@@ -145,4 +149,5 @@ async function schedule() {
   </div>
 
   <ScheduleComponent v-if="mappedTasks.length" :tasks="mappedTasks" />
+  <h4 v-else class="m-3">Brak zadań uszeregowanych tego dnia.</h4>
 </template>
