@@ -14,10 +14,16 @@ const settings: { packages: any[] } = {
   packages: ['timeline']
 }
 
-const props = defineProps<{
-  tasks: ScheduledTask[]
-  chartOptions?: any
-}>()
+const props = withDefaults(
+  defineProps<{
+    tasks: ScheduledTask[]
+    machineNameFormatter: (machine: number) => string
+    chartOptions?: any
+  }>(),
+  {
+    machineNameFormatter: (machine: number) => `Pracownik ${machine}`
+  }
+)
 
 const width = ref<number>(1500)
 
@@ -33,7 +39,13 @@ const data = computed(() => {
   ]
 
   for (const task of props.tasks) {
-    data.push([`Pracownik ${task.machine}`, task.name, task.tooltip ?? null, task.start, task.end])
+    data.push([
+      props.machineNameFormatter(task.machine),
+      task.name,
+      task.tooltip ?? null,
+      task.start,
+      task.end
+    ])
   }
 
   return data
