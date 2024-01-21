@@ -68,7 +68,7 @@ fn parse_schedule_infos(dict: &PyDict) -> Result<Vec<Vec<ScheduleInfo>>, PyErr> 
 }
 
 #[tauri::command]
-pub fn run_flow(tasks: Vec<Task>) -> Result<Schedule, Error> {
+pub async fn run_flow(tasks: Vec<Task>) -> Result<Schedule, Error> {
     let script = Script::Pa.get_script();
 
     Ok(python::with_enhanced_gil(|py, _, file| {
