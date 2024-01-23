@@ -29,4 +29,7 @@ jobs:
     - run: npm run build
     - run: cargo install tauri-cli
     - run: cargo tauri build
-    - run: cargo tauri build --target aarch64-pc-windows-msvc
+    - if: matrix.platform == 'windows-latest'
+      run: cargo tauri build --target aarch64-pc-windows-msvc
+    - if: matrix.platform == 'macos-latest'
+      run: cargo tauri build --target aarch64-apple-darwin
