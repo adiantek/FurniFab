@@ -203,7 +203,7 @@ async function schedule() {
   <ScheduleComponent
     v-if="mappedTasks.length"
     :tasks="mappedTasks"
-    :machine-name-formatter="(machine) => (machine == 0 ? 'Szlifowanie' : 'Lakierowanie')"
+    :machine-name-formatter="(machine: number) => (machine == 0 ? 'Szlifowanie' : 'Lakierowanie')"
   />
   <h4 v-else class="m-3">Brak zadań uszeregowanych tego dnia.</h4>
 </template>
