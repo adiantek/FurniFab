@@ -72,6 +72,11 @@ impl<'a> ScheduleBuilder<'a> {
         self.machines[machine].push(task);
     }
 
+    /// Returns the schedule for a task.
+    pub fn get_schedule(&self, task: usize) -> Option<&ScheduleInfo> {
+        self.schedule.get_schedule(task)
+    }
+
     /// Marks a task as tardy.
     pub fn tardy(&mut self, task: usize) {
         self.tardy_tasks.push(task);

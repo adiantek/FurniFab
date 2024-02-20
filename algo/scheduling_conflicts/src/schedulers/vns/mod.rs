@@ -3,6 +3,7 @@ mod neighborhoods;
 
 use crate::util::ScheduleBuilder;
 use crate::{Instance, Schedule};
+use rand::Rng;
 
 fn neighborhood_search(mut schedule: ScheduleBuilder) -> ScheduleBuilder {
     let factories = [
@@ -40,6 +41,58 @@ fn neighborhood_search(mut schedule: ScheduleBuilder) -> ScheduleBuilder {
 }
 
 pub fn vns(instance: &Instance) -> Schedule {
-    let schedule = neighborhood_search(init::schedule(instance));
+    let mut schedule = neighborhood_search(init::schedule(instance));
+    let mut best_score = schedule.calculate_score();
+
+    let mut rng = rand::thread_rng();
+
+    for _ in 0..10 {
+        let mut new_schedule = schedule.clone();
+
+        for _ in 0..(instance.tasks.len() / 20).max(1) {
+            let task = rng.gen_range(0..instance.tasks.len());
+            let task_machine = new_schedule.get_schedule(task).map(|info| info.processor);
+
+            new_schedule.reorganize_schedule(|machines, tardy_tasks| {
+                let mut machine_fixings = Vec::with_capacity(2);
+                let mut tardy_fixings = Vec::with_capacity(1);
+
+                match task_machine {
+                    Some(machine) => {
+                        if let Some(id) = machines[machine].iter().position(|&id| id == task) {
+                            machine_fixings.push((machine, id));
+                        }
+                        machines[machine].retain(|&id| id != task);
+                    }
+                    None => {
+                        if let Some(id) = tardy_tasks.iter().position(|&id| id == task) {
+                            tardy_fixings.push(id);
+                        }
+                        tardy_tasks.retain(|&id| id != task);
+                    }
+                }
+
+                let new_machine = rng.gen_range(0..instance.processors);
+                let new_position = rng.gen_range(0..machines[new_machine].len() + 1);
+                machines[new_machine].insert(new_position, task);
+
+                match task_machine.filter(|&machine| machine == new_machine) {
+                    Some(_) => machine_fixings[0].1 = new_position.min(machine_fixings[0].1),
+                    None => machine_fixings.push((new_machine, new_position)),
+                }
+
+                (machine_fixings, tardy_fixings)
+            });
+        }
+
+        let new_schedule = neighborhood_search(new_schedule);
+        let new_score = new_schedule.calculate_score();
+
+        if new_score > best_score {
+            best_score = new_score;
+            schedule = new_schedule;
+        }
+    }
+
     schedule.into()
 }
