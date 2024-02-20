@@ -2,7 +2,7 @@ use crate::Instance;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// A schedule info for a task. Contains the start time and processor of the task.
+/// Schedule info for a task. Contains the start time and processor of the task.
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Serialize, PartialEq)]
 pub struct ScheduleInfo {
@@ -11,7 +11,7 @@ pub struct ScheduleInfo {
 }
 
 impl ScheduleInfo {
-    /// Creates a new schedule info.
+    /// Creates new schedule info.
     pub fn new(start_time: u64, processor: usize) -> Self {
         ScheduleInfo {
             start_time,
@@ -47,6 +47,11 @@ impl<'a> Schedule<'a> {
         self.schedule[task] = None;
     }
 
+    /// Get the schedule info for a task.
+    pub fn get_schedule(&self, task: usize) -> Option<&ScheduleInfo> {
+        self.schedule[task].as_ref()
+    }
+
     /// Check if the given task with the given start time is in conflict with another task.
     pub fn in_conflict(&self, task: usize, start_time: u64) -> bool {
         self.instance.graph.conflicts(task).iter().any(|&other| {
@@ -59,24 +64,6 @@ impl<'a> Schedule<'a> {
                 false
             }
         })
-    }
-
-    /// Returns start time for a task that is not in conflict with another task.
-    pub fn available_start_time(&self, task: usize) -> u64 {
-        self.instance
-            .graph
-            .conflicts(task)
-            .iter()
-            .filter_map(|&other| {
-                if let Some(schedule_info) = self.schedule[other] {
-                    let task = &self.instance.tasks[other];
-                    Some(schedule_info.start_time + task.processing_time)
-                } else {
-                    None
-                }
-            })
-            .reduce(|a, b| a.max(b))
-            .unwrap_or(0)
     }
 
     /// Calculates the score of the schedule.

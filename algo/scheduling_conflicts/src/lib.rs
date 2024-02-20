@@ -2,6 +2,7 @@ mod problem;
 pub mod schedulers;
 pub mod serialization;
 mod solution;
+pub mod util;
 
 pub use problem::*;
 pub use schedulers::*;
