@@ -2,7 +2,7 @@ use crate::Instance;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// A schedule info for a task. Contains the start time and processor of the task.
+/// Schedule info for a task. Contains the start time and processor of the task.
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Serialize, PartialEq)]
 pub struct ScheduleInfo {
@@ -11,7 +11,7 @@ pub struct ScheduleInfo {
 }
 
 impl ScheduleInfo {
-    /// Creates a new schedule info.
+    /// Creates new schedule info.
     pub fn new(start_time: u64, processor: usize) -> Self {
         ScheduleInfo {
             start_time,
@@ -47,6 +47,23 @@ impl<'a> Schedule<'a> {
         self.schedule[task] = None;
     }
 
+    /// Get the schedule info for a task.
+    pub fn get_schedule(&mut self, task: usize) -> &mut Option<ScheduleInfo> {
+        &mut self.schedule[task]
+    }
+
+    /// Get the schedule info for a task.
+    pub fn get_schedule2(&self, task: usize) -> &Option<ScheduleInfo> {
+        &self.schedule[task]
+    }
+
+    /// Get the ending time of a task.
+    pub fn get_ending_time(&self, task: usize) -> Option<u64> {
+        let schedule_info = self.schedule[task]?;
+        let task = &self.instance.tasks[task];
+        Some(schedule_info.start_time + task.processing_time)
+    }
+
     /// Check if the given task with the given start time is in conflict with another task.
     pub fn in_conflict(&self, task: usize, start_time: u64) -> bool {
         self.instance.graph.conflicts(task).iter().any(|&other| {
@@ -61,8 +78,8 @@ impl<'a> Schedule<'a> {
         })
     }
 
-    /// Returns start time for a task that is not in conflict with another task.
-    pub fn available_start_time(&self, task: usize) -> u64 {
+    /// Get the end times of the tasks that are in conflict with the given task.
+    pub fn get_conflict_end_times(&self, task: usize) -> Vec<u64> {
         self.instance
             .graph
             .conflicts(task)
@@ -75,7 +92,14 @@ impl<'a> Schedule<'a> {
                     None
                 }
             })
-            .reduce(|a, b| a.max(b))
+            .collect()
+    }
+
+    /// Returns start time for a task that is not in conflict with another task.
+    pub fn available_start_time(&self, task: usize) -> u64 {
+        self.get_conflict_end_times(task)
+            .into_iter()
+            .max()
             .unwrap_or(0)
     }
 

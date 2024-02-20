@@ -6,6 +6,11 @@ export interface CommandOutput {
   error: string[]
 }
 
+export enum ConflictAlgorithm {
+  List = 'List',
+  VNS = 'VNS'
+}
+
 export interface ConflictTask {
   processing_time: number
   weight: number
@@ -51,8 +56,11 @@ export function runExecutable(exec: string, stdin: string): Promise<CommandOutpu
   return invoke('run_resource', { exec, stdin })
 }
 
-export async function scheduleConflicts(instance: Instance): Promise<Schedule> {
-  const scheduleString = await invoke('run_scheduling_conflicts', { instance })
+export async function scheduleConflicts(
+  instance: Instance,
+  algorithm: ConflictAlgorithm
+): Promise<Schedule> {
+  const scheduleString = await invoke('run_scheduling_conflicts', { instance, algorithm })
   return await JSON.parse(scheduleString as string)
 }
 

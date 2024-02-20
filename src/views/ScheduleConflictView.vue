@@ -6,7 +6,8 @@ import {
   type ConflictGraph,
   type Instance,
   scheduleConflicts,
-  type ConflictTask
+  type ConflictTask,
+  ConflictAlgorithm
 } from '@/api'
 import {
   type BusinessTask,
@@ -22,6 +23,7 @@ const businessTasks = useBusinessTasks()
 
 const processors = ref<number>(3)
 const date = ref<Date>(new Date(new Date().setHours(8, 0, 0, 0)))
+const algorithm = ref<ConflictAlgorithm>(ConflictAlgorithm.List)
 
 const todayTasks = computed<BusinessTask[]>(() =>
   businessTasks.value
@@ -78,7 +80,7 @@ async function schedule() {
     graph
   }
 
-  const schedule = await scheduleConflicts(instance)
+  const schedule = await scheduleConflicts(instance, algorithm.value)
 
   schedule.schedule.forEach((scheduleInfo, index) => {
     if (scheduleInfo !== null) {
@@ -126,6 +128,15 @@ async function schedule() {
     <div class="input-group mb-1">
       <label class="input-group-text">Liczba pracowników</label>
       <input v-model="processors" type="number" class="form-control" min="1" />
+    </div>
+
+    <div class="input-group mb-1">
+      <label class="input-group-text">Algorytm</label>
+      <select v-model="algorithm" class="form-select">
+        <option :key="algo" v-for="algo in Object.keys(ConflictAlgorithm)" :value="algo">
+          {{ algo }}
+        </option>
+      </select>
     </div>
 
     <div class="card-group mb-1">

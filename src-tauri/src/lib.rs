@@ -13,6 +13,8 @@ pub enum Error {
     Serde(String),
     #[error("Error from python: {0}")]
     Python(String),
+    #[error("Algorithm failed to produce a valid schedule. This is a bug.")]
+    InvalidSchedule,
 }
 
 impl From<SerdeError> for Error {
