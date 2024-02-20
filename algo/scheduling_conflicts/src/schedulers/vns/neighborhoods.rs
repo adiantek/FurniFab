@@ -4,21 +4,6 @@ use crate::util::ScheduleBuilder;
 /// It's used to generate new schedules from a given schedule.
 pub type Neighborhood<'a, 'b> = dyn Iterator<Item = ScheduleBuilder<'a>> + 'b;
 
-/// Factory for creating a neighborhood.
-pub type NeighborhoodFactory<'a, 'b> = fn(&'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>>;
-
-/// Returns all neighborhoods factories.
-pub fn factories<'a, 'b>() -> Box<[NeighborhoodFactory<'a, 'b>]> {
-    Box::new([
-        SwapSingleMachine::new_boxed,
-        MoveSingleMachine::new_boxed,
-        SwapTwoMachines::new_boxed,
-        MoveTwoMachines::new_boxed,
-        ReplaceWithTardy::new_boxed,
-        AddTardy::new_boxed,
-    ])
-}
-
 /// Neighborhood that swaps two tasks on the same machine.
 pub struct SwapSingleMachine<'a, 'b> {
     schedule: &'b ScheduleBuilder<'a>,
@@ -27,16 +12,14 @@ pub struct SwapSingleMachine<'a, 'b> {
     j: usize,
 }
 
-impl<'a, 'b> SwapSingleMachine<'a, 'b> {
-    /// Creates a new swap single machine neighbourhood.
-    pub fn new_boxed(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
-        Box::new(Self {
-            schedule,
-            machine: 0,
-            i: 0,
-            j: 1,
-        })
-    }
+/// Creates a new instance of SwapSingleMachine neighborhood.
+pub fn swap_single_machine<'a, 'b>(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
+    Box::new(SwapSingleMachine {
+        schedule,
+        machine: 0,
+        i: 0,
+        j: 1,
+    })
 }
 
 impl<'a, 'b> Iterator for SwapSingleMachine<'a, 'b> {
@@ -81,16 +64,14 @@ pub struct MoveSingleMachine<'a, 'b> {
     j: usize,
 }
 
-impl<'a, 'b> MoveSingleMachine<'a, 'b> {
-    /// Creates a new move single task on a single machine neighbourhood.
-    pub fn new_boxed(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
-        Box::new(Self {
-            schedule,
-            machine: 0,
-            i: 0,
-            j: 1,
-        })
-    }
+/// Creates a new instance of MoveSingleMachine neighborhood.
+pub fn move_single_machine<'a, 'b>(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
+    Box::new(MoveSingleMachine {
+        schedule,
+        machine: 0,
+        i: 0,
+        j: 1,
+    })
 }
 
 impl<'a, 'b> Iterator for MoveSingleMachine<'a, 'b> {
@@ -134,17 +115,15 @@ pub struct SwapTwoMachines<'a, 'b> {
     j: usize,
 }
 
-impl<'a, 'b> SwapTwoMachines<'a, 'b> {
-    /// Creates a new swap two machine neighbourhood.
-    pub fn new_boxed(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
-        Box::new(Self {
-            schedule,
-            first: 0,
-            second: 1,
-            i: 0,
-            j: 0,
-        })
-    }
+/// Creates a new instance of SwapTwoMachines neighborhood.
+pub fn swap_two_machines<'a, 'b>(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
+    Box::new(SwapTwoMachines {
+        schedule,
+        first: 0,
+        second: 1,
+        i: 0,
+        j: 0,
+    })
 }
 
 impl<'a, 'b> Iterator for SwapTwoMachines<'a, 'b> {
@@ -195,17 +174,15 @@ pub struct MoveTwoMachines<'a, 'b> {
     j: usize,
 }
 
-impl<'a, 'b> MoveTwoMachines<'a, 'b> {
-    /// Creates a new move two machine neighbourhood.
-    pub fn new_boxed(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
-        Box::new(Self {
-            schedule,
-            first: 0,
-            second: 1,
-            i: 0,
-            j: 0,
-        })
-    }
+/// Creates a new instance of MoveTwoMachines neighborhood.
+pub fn move_two_machines<'a, 'b>(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
+    Box::new(MoveTwoMachines {
+        schedule,
+        first: 0,
+        second: 1,
+        i: 0,
+        j: 0,
+    })
 }
 
 impl<'a, 'b> Iterator for MoveTwoMachines<'a, 'b> {
@@ -254,16 +231,14 @@ pub struct ReplaceWithTardy<'a, 'b> {
     j: usize,
 }
 
-impl<'a, 'b> ReplaceWithTardy<'a, 'b> {
-    /// Creates a new replacement tardy neighbourhood.
-    pub fn new_boxed(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
-        Box::new(Self {
-            schedule,
-            machine: 0,
-            i: 0,
-            j: 0,
-        })
-    }
+/// Creates a new instance of ReplaceWithTardy neighborhood.
+pub fn replace_with_tardy<'a, 'b>(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
+    Box::new(ReplaceWithTardy {
+        schedule,
+        machine: 0,
+        i: 0,
+        j: 0,
+    })
 }
 
 impl<'a, 'b> Iterator for ReplaceWithTardy<'a, 'b> {
@@ -309,16 +284,14 @@ pub struct AddTardy<'a, 'b> {
     j: usize,
 }
 
-impl<'a, 'b> AddTardy<'a, 'b> {
-    /// Creates add a tardy neighbourhood.
-    pub fn new_boxed(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
-        Box::new(Self {
-            schedule,
-            machine: 0,
-            i: 0,
-            j: 0,
-        })
-    }
+/// Creates a new instance of AddTardy neighborhood.
+pub fn add_tardy<'a, 'b>(schedule: &'b ScheduleBuilder<'a>) -> Box<Neighborhood<'a, 'b>> {
+    Box::new(AddTardy {
+        schedule,
+        machine: 0,
+        i: 0,
+        j: 0,
+    })
 }
 
 impl<'a, 'b> Iterator for AddTardy<'a, 'b> {

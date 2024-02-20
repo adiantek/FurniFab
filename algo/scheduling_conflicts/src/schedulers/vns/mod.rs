@@ -5,15 +5,22 @@ use crate::util::ScheduleBuilder;
 use crate::{Instance, Schedule};
 
 fn neighborhood_search(mut schedule: ScheduleBuilder) -> ScheduleBuilder {
-    let neighborhood_amount = neighborhoods::factories().len();
+    let factories = [
+        neighborhoods::swap_single_machine,
+        neighborhoods::move_single_machine,
+        neighborhoods::swap_two_machines,
+        neighborhoods::move_two_machines,
+        neighborhoods::replace_with_tardy,
+        neighborhoods::add_tardy,
+    ];
 
     let mut k = 0;
 
-    while k < neighborhood_amount {
+    while k < factories.len() {
         let mut best_score = schedule.calculate_score();
         let mut best_schedule = None;
 
-        for schedule in neighborhoods::factories()[k](&schedule) {
+        for schedule in factories[k](&schedule) {
             let score = schedule.calculate_score();
             if score > best_score {
                 best_score = score;
