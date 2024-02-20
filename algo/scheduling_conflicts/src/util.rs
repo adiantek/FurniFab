@@ -49,10 +49,9 @@ pub fn weighted_task_comparator(a: &TaskWithId, b: &TaskWithId) -> Ordering {
 #[derive(Clone, Debug)]
 pub struct ScheduleBuilder<'a> {
     instance: &'a Instance,
-    // TODO: temporary pubs
-    pub schedule: Schedule<'a>,
-    pub machines: Vec<Vec<usize>>,
-    pub tardy_tasks: Vec<usize>,
+    schedule: Schedule<'a>,
+    machines: Vec<Vec<usize>>,
+    tardy_tasks: Vec<usize>,
 }
 
 impl<'a> ScheduleBuilder<'a> {
@@ -78,6 +77,21 @@ impl<'a> ScheduleBuilder<'a> {
         self.tardy_tasks.push(task);
     }
 
+    /// Returns the number of machines.
+    pub fn machines_len(&self) -> usize {
+        self.machines.len()
+    }
+
+    /// Returns the number of tasks in a machine.
+    pub fn machine_tasks_len(&self, machine: usize) -> usize {
+        self.machines[machine].len()
+    }
+
+    /// Returns the number of tardy tasks.
+    pub fn tardy_len(&self) -> usize {
+        self.tardy_tasks.len()
+    }
+
     /// Calculates the score of the schedule.
     pub fn calculate_score(&self) -> u64 {
         self.schedule.calculate_score()
@@ -85,19 +99,18 @@ impl<'a> ScheduleBuilder<'a> {
 
     /// Creates an ordered set of machines with order of free time.
     pub fn new_machine_free_times(&mut self) -> BTreeSet<Machine> {
-        // tODO: remove mut, refactor
-        let mut machines = BTreeSet::new();
-        for (id, tasks) in self.machines.iter().enumerate() {
-            machines.insert(Machine::with_free_time(
-                id,
-                tasks
+        self.machines
+            .iter()
+            .enumerate()
+            .map(|(id, tasks)| {
+                let free_time = tasks
                     .last()
-                    .and_then(|&task| self.schedule.get_schedule(task).as_mut().map(|x| (task, x)))
-                    .map(|(x, y)| y.start_time + self.instance.tasks[x].processing_time)
-                    .unwrap_or(0),
-            ));
-        }
-        machines
+                    .and_then(|&task| self.schedule.get_schedule(task).map(|info| (task, info)))
+                    .map(|(task, info)| info.start_time + self.instance.tasks[task].processing_time)
+                    .unwrap_or_default();
+                Machine::with_free_time(id, free_time)
+            })
+            .collect()
     }
 
     /// Check if the given task with the given start time is in conflict with another task.
@@ -108,34 +121,52 @@ impl<'a> ScheduleBuilder<'a> {
     /// Calculates first available time for a task that is not in conflict with other tasks.
     /// It returns None if there is no available time within deadline.
     pub fn calculate_non_conflict_time(&self, task: usize, minimum_time: u64) -> Option<u64> {
-        // tODO: refactor
+        let processing_time = self.instance.tasks[task].processing_time;
         let mut times: Vec<_> = self
             .instance
             .graph
             .conflicts(task)
             .iter()
             .filter_map(|&other| {
-                if let Some(info) = self.schedule.get_schedule2(other) {
-                    let time = info.start_time + self.instance.tasks[other].processing_time;
-                    if time > minimum_time {
-                        Some(time)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
+                self.schedule
+                    .get_schedule(other)
+                    .map(|info| info.start_time + self.instance.tasks[other].processing_time)
             })
+            .filter(|&time| time >= minimum_time)
+            .filter(|&time| time + processing_time <= self.instance.deadline)
+            .filter(|&time| !self.schedule.in_conflict(task, time))
             .collect();
         times.sort_unstable();
-        times.into_iter().find(|&time| {
-            !self.schedule.in_conflict(task, time)
-                && self.instance.deadline >= time + self.instance.tasks[task].processing_time
-        })
+        times.first().copied()
     }
 
-    /// TODO: pub
-    pub fn fix_machine(&mut self, machine: usize, start_index: usize) {
+    /// Reorganizes the schedule using the given operations.
+    /// It removes the tasks that are changed and fixes the machines and tardy tasks.
+    /// The op function should return a tuple with machine id, index, and tardy tasks.
+    pub fn reorganize_schedule<F>(&mut self, op: F)
+    where
+        F: FnOnce(&mut [Vec<usize>], &mut Vec<usize>) -> (Vec<(usize, usize)>, Vec<usize>),
+    {
+        let (machines, tardy) = op(&mut self.machines, &mut self.tardy_tasks);
+
+        for task in tardy {
+            self.schedule.remove_schedule(task);
+        }
+
+        for (machine, index) in &machines {
+            for &task in &self.machines[*machine][*index..] {
+                self.schedule.remove_schedule(task);
+            }
+        }
+
+        for (machine, index) in machines {
+            self.fix_machine(machine, index);
+        }
+
+        self.fix_tardy();
+    }
+
+    fn fix_machine(&mut self, machine: usize, start_index: usize) {
         let mut free_time = if start_index == 0 {
             0
         } else {
@@ -165,15 +196,14 @@ impl<'a> ScheduleBuilder<'a> {
             }
         }
 
-        self.machines[machine] = self.machines[machine] // TODO: find better way
+        self.machines[machine] = self.machines[machine]
             .iter()
             .filter(|&&id| self.schedule.get_schedule(id).is_some())
             .copied()
             .collect();
     }
 
-    /// TODO: fix pub
-    pub fn fix_tardy(&mut self) {
+    fn fix_tardy(&mut self) {
         self.tardy_tasks.sort_unstable_by(|&a, &b| {
             weighted_task_comparator(&(a, self.instance.tasks[a]), &(b, self.instance.tasks[b]))
         });

@@ -1,59 +1,48 @@
-use crate::{Instance, Schedule, ScheduleInfo, Task};
-use std::collections::BTreeSet;
+use crate::util::{weighted_task_comparator, ScheduleBuilder, TaskWithId};
+use crate::{Instance, Schedule};
 
 pub fn list_algorithm(instance: &Instance) -> Schedule {
-    let mut schedule = Schedule::new(instance);
-    let mut machines: BTreeSet<(u64, usize)> = BTreeSet::new();
+    let mut schedule = ScheduleBuilder::new(instance);
+    let mut machines = schedule.new_machine_free_times();
 
-    for machine in 0..instance.processors {
-        machines.insert((0, machine));
-    }
-
-    let mut tasks: Vec<(usize, Task)> = instance.tasks.iter().copied().enumerate().collect();
-    tasks.sort_unstable_by_key(|task| task.1.weight);
-    tasks.reverse();
+    let mut tasks: Vec<TaskWithId> = instance.tasks.iter().copied().enumerate().collect();
+    tasks.sort_unstable_by(weighted_task_comparator);
 
     for (id, task) in tasks {
-        let mut schedule_info = None;
+        let mut found_machine = None;
 
-        for (time, machine) in &machines {
-            if !schedule.in_conflict(id, *time) {
-                schedule_info = Some(ScheduleInfo::new(*time, *machine));
+        for &machine in &machines {
+            if !schedule.in_conflict(id, machine.free_time) {
+                found_machine = Some(machine);
                 break;
             }
         }
 
-        if let Some(schedule_info) = schedule_info {
-            if schedule_info.start_time + task.processing_time <= instance.deadline {
-                schedule.schedule(id, schedule_info);
-                machines.remove(&(schedule_info.start_time, schedule_info.processor));
-                machines.insert((
-                    schedule_info.start_time + task.processing_time,
-                    schedule_info.processor,
-                ));
+        if let Some(mut machine) = found_machine {
+            if machine.free_time + task.processing_time <= instance.deadline {
+                schedule.schedule(id, machine.free_time, machine.id);
+                machines.remove(&machine);
+                machine.free_time += task.processing_time;
+                machines.insert(machine);
                 continue;
             }
         }
 
-        let non_conflict_time = schedule.available_start_time(id);
-
-        if non_conflict_time + task.processing_time <= instance.deadline {
-            let mut machine_iter = machines.iter().rev();
-            let mut picked_machine = None;
-            while let Some((time, machine)) = machine_iter.next_back() {
-                if *time < non_conflict_time {
-                    picked_machine = Some((*time, *machine));
-                    break;
-                }
+        let mut machine_with_time = None;
+        for &machine in &machines {
+            if let Some(time) = schedule.calculate_non_conflict_time(id, machine.free_time) {
+                machine_with_time = Some((time, machine));
+                break;
             }
+        }
 
-            if let Some((time, machine)) = picked_machine {
-                schedule.schedule(id, ScheduleInfo::new(non_conflict_time, machine));
-                machines.remove(&(time, machine));
-                machines.insert((non_conflict_time + task.processing_time, machine));
-            }
+        if let Some((time, mut machine)) = machine_with_time {
+            schedule.schedule(id, time, machine.id);
+            machines.remove(&machine);
+            machine.free_time = time + task.processing_time;
+            machines.insert(machine);
         }
     }
 
-    schedule
+    schedule.into()
 }

@@ -48,20 +48,8 @@ impl<'a> Schedule<'a> {
     }
 
     /// Get the schedule info for a task.
-    pub fn get_schedule(&mut self, task: usize) -> &mut Option<ScheduleInfo> {
-        &mut self.schedule[task]
-    }
-
-    /// Get the schedule info for a task.
-    pub fn get_schedule2(&self, task: usize) -> &Option<ScheduleInfo> {
-        &self.schedule[task]
-    }
-
-    /// Get the ending time of a task.
-    pub fn get_ending_time(&self, task: usize) -> Option<u64> {
-        let schedule_info = self.schedule[task]?;
-        let task = &self.instance.tasks[task];
-        Some(schedule_info.start_time + task.processing_time)
+    pub fn get_schedule(&self, task: usize) -> Option<&ScheduleInfo> {
+        self.schedule[task].as_ref()
     }
 
     /// Check if the given task with the given start time is in conflict with another task.
@@ -76,31 +64,6 @@ impl<'a> Schedule<'a> {
                 false
             }
         })
-    }
-
-    /// Get the end times of the tasks that are in conflict with the given task.
-    pub fn get_conflict_end_times(&self, task: usize) -> Vec<u64> {
-        self.instance
-            .graph
-            .conflicts(task)
-            .iter()
-            .filter_map(|&other| {
-                if let Some(schedule_info) = self.schedule[other] {
-                    let task = &self.instance.tasks[other];
-                    Some(schedule_info.start_time + task.processing_time)
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-
-    /// Returns start time for a task that is not in conflict with another task.
-    pub fn available_start_time(&self, task: usize) -> u64 {
-        self.get_conflict_end_times(task)
-            .into_iter()
-            .max()
-            .unwrap_or(0)
     }
 
     /// Calculates the score of the schedule.
