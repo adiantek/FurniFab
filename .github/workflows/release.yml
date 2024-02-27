@@ -1,10 +1,8 @@
-name: Rust
+name: Publish application
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+  release:
+    types: ["published"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -58,22 +56,22 @@ jobs:
 
       - name: Build binary (unix)
         if: matrix.platform != 'windows-latest'
-        run: python3 script/build.py snapshot ${{ github.run_number }}
+        run: python3 script/build.py release ${{ github.event.release.tag_name }}
 
       - name: Build binary (windows)
         if: matrix.platform == 'windows-latest'
-        run: python script/build.py snapshot ${{ github.run_number }}
+        run: python script/build.py release ${{ github.event.release.tag_name }}
 
 #      - name: Build binary (windows arm)
 #        if: matrix.platform == 'windows-latest'
 #        continue-on-error: true
 #        env:
 #          PYO3_CROSS: 1
-#        run: python3 script/build.py snapshot ${{ github.run_number }} aarch64-pc-windows-msvc
+#        run: python3 script/build.py release ${{ github.event.release.tag_name }} aarch64-pc-windows-msvc
 
       - name: Build binary (macos arm)
         if: matrix.platform == 'macos-latest'
-        run: python3 script/build.py snapshot ${{ github.run_number }} aarch64-apple-darwin
+        run: python3 script/build.py release ${{ github.event.release.tag_name }} aarch64-apple-darwin
 
       - name: Upload artifacts
         if: ${{ github.event_name == 'push' }}
@@ -122,12 +120,12 @@ jobs:
           path: src-tauri/target/release/bundle
 
       - name: Run python script
-        run: python3 script/release.py snapshot ${{ github.run_number }}
+        run: python3 script/release.py release ${{ github.event.release.tag_name }}
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: release
-          target-folder: snapshot
+          target-folder: release
           clean: false
           single-commit: true

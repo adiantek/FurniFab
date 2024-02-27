@@ -50,7 +50,12 @@
       "csp": null
     },
     "updater": {
-      "active": false
+      "active": true,
+      "endpoints": [
+        "https://adiantek.github.io/FurniFab/snapshot/version.json"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEUyNjQ3QUNDQTNFODU3Q0MKUldUTVYraWp6SHBrNHQ0MHllQ2gxT1dJTTJGazhZQm1SdDJXaG9QZ2JrUWtnL0NHd1ZjUktuL20K"
     },
     "windows": [
       {
