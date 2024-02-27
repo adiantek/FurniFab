@@ -14,6 +14,7 @@ declare module 'vue' {
     BusinessTaskEditorComponent: typeof import('./src/components/BusinessTaskEditorComponent.vue')['default']
     CreateBusinessTaskButtonComponent: typeof import('./src/components/CreateBusinessTaskButtonComponent.vue')['default']
     EditIconComponent: typeof import('./src/components/EditIconComponent.vue')['default']
+    LoadingButton: typeof import('./src/components/LoadingButton.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScheduleComponent: typeof import('./src/components/ScheduleComponent.vue')['default']

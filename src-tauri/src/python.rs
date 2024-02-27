@@ -49,7 +49,7 @@ pub struct FileHijacker {
 
 impl FileHijacker {
     /// Get output of file with given filename.
-    pub fn get_file_output(&self, filename: &str) -> PyResult<String> {
+    pub fn _get_file_output(&self, filename: &str) -> PyResult<String> {
         let file_map = self.files.lock();
         let file = file_map
             .get(filename)

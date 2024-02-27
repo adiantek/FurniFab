@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 
 const PA_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/pa.py");
 const JOHNSON_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/Johnson.py");
+const JOHNSON_2_SCRIPT: &str = include_str!("../../F2,rj,pmtn,Cmax/Johnson_ver2.py");
+const BRANCH_AND_BOUND: &str = include_str!("../../F2,rj,pmtn,Cmax/BB.py");
 const FILENAME: &str = "file.txt";
 const MODULE_NAME: &str = "flow";
 const MODULE_FILENAME: &str = "flow.py";
@@ -14,13 +16,31 @@ const MODULE_FILENAME: &str = "flow.py";
 pub enum Script {
     Pa,
     Johnson,
+    Johnson2,
+    BranchAndBound,
 }
 
 impl Script {
-    fn get_script(&self) -> &'static str {
+    fn script(&self) -> &'static str {
         match self {
             Script::Pa => PA_SCRIPT,
             Script::Johnson => JOHNSON_SCRIPT,
+            Script::Johnson2 => JOHNSON_2_SCRIPT,
+            Script::BranchAndBound => BRANCH_AND_BOUND,
+        }
+    }
+
+    fn first_result(&self) -> &'static str {
+        match self {
+            Script::Pa => "time",
+            _ => "result",
+        }
+    }
+
+    fn second_result(&self) -> &'static str {
+        match self {
+            Script::Pa => "time2",
+            _ => "result2",
         }
     }
 }
@@ -68,10 +88,10 @@ fn parse_schedule_infos(dict: &PyDict) -> Result<Vec<Vec<ScheduleInfo>>, PyErr> 
 }
 
 #[tauri::command]
-pub async fn run_flow(tasks: Vec<Task>) -> Result<Schedule, Error> {
-    let script = Script::Pa.get_script();
-
+pub async fn run_flow(tasks: Vec<Task>, script: Script) -> Result<Schedule, Error> {
     Ok(python::with_enhanced_gil(|py, _, file| {
+        let list = py.import("builtins")?.getattr("list")?;
+
         file.write_to_stdin(FILENAME)?;
         file.write_to_stdin("\n")?;
 
@@ -85,12 +105,14 @@ pub async fn run_flow(tasks: Vec<Task>) -> Result<Schedule, Error> {
             )?;
         }
 
-        PyModule::from_code(py, script, MODULE_FILENAME, MODULE_NAME)?;
+        PyModule::from_code(py, script.script(), MODULE_FILENAME, MODULE_NAME)?;
 
         let module = py.import(MODULE_NAME)?;
 
-        let grinding = parse_schedule_infos(module.getattr("time")?.extract()?)?;
-        let lacquering = parse_schedule_infos(module.getattr("time2")?.extract()?)?;
+        let grinding = parse_schedule_infos(module.getattr(script.first_result())?.extract()?)?;
+        let lacquering = parse_schedule_infos(module.getattr(script.second_result())?.extract()?)?;
+
+        module.setattr("list", list)?;
 
         Ok(Schedule {
             grinding,

@@ -36,6 +36,13 @@ export interface Schedule {
   schedule: (ScheduleInfo | null)[]
 }
 
+export enum FlowScript {
+  Pa = 'Pa',
+  Johnson = 'Johnson',
+  Johnson2 = 'Johnson2',
+  BranchAndBound = 'BranchAndBound'
+}
+
 export interface FlowTask {
   start_time: number
   grinding_time: number
@@ -64,6 +71,6 @@ export async function scheduleConflicts(
   return await JSON.parse(scheduleString as string)
 }
 
-export function scheduleFlow(tasks: FlowTask[]): Promise<FlowSchedule> {
-  return invoke('run_flow', { tasks })
+export function scheduleFlow(tasks: FlowTask[], script: FlowScript): Promise<FlowSchedule> {
+  return invoke('run_flow', { tasks, script })
 }

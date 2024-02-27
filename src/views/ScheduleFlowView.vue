@@ -3,11 +3,12 @@ import { type BusinessTask, useBusinessTasks } from '@/composables/TaskComposabl
 import { computed, ref } from 'vue'
 import { isSameDay, plusMinutes } from '@/utils'
 import type { ScheduledTask } from '@/components/ScheduleComponent.vue'
-import { type FlowTask, scheduleFlow } from '@/api'
+import { FlowScript, type FlowTask, scheduleFlow } from '@/api'
 
 const businessTasks = useBusinessTasks()
 
 const date = ref<Date>(new Date(new Date().setHours(8, 0, 0, 0)))
+const script = ref<FlowScript>(FlowScript.Pa)
 
 const readyTasks = computed<BusinessTask[]>(() =>
   businessTasks.value
@@ -98,7 +99,7 @@ async function schedule() {
 
   console.log(apiTasks)
 
-  const schedule = await scheduleFlow(apiTasks)
+  const schedule = await scheduleFlow(apiTasks, script.value)
   console.log(schedule)
 
   schedule.grinding.forEach((times, index) => {
@@ -184,14 +185,19 @@ async function schedule() {
   </div>
 
   <div class="card p-2">
+    <div class="input-group mb-1">
+      <label class="input-group-text">Algorytm</label>
+      <select v-model="script" class="form-select">
+        <option :key="script" v-for="script in Object.keys(FlowScript)" :value="script">
+          {{ script }}
+        </option>
+      </select>
+    </div>
+
     <div class="card-group mb-1">
-      <button
-        class="btn btn-primary m-auto me-1"
-        @click="schedule"
-        :disabled="!!scheduledTasks.length || !readyTasks.length"
-      >
+      <LoadingButton @click="schedule" :disabled="!!scheduledTasks.length || !readyTasks.length">
         Utwórz uszeregowanie
-      </button>
+      </LoadingButton>
       <button class="btn btn-primary m-auto" @click="reset" :disabled="!scheduledTasks.length">
         Resetuj
       </button>

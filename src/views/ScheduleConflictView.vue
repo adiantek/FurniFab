@@ -140,13 +140,9 @@ async function schedule() {
     </div>
 
     <div class="card-group mb-1">
-      <button
-        class="btn btn-primary m-auto"
-        @click="schedule"
-        :disabled="!!mappedTasks.length || !notScheduledTasks.length"
-      >
+      <LoadingButton @click="schedule" :disabled="!!mappedTasks.length || !notScheduledTasks.length">
         Utwórz uszeregowanie
-      </button>
+      </LoadingButton>
       <button class="btn btn-primary m-auto" @click="reset" :disabled="!mappedTasks.length">
         Resetuj
       </button>
