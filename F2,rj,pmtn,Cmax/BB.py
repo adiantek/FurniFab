@@ -92,6 +92,7 @@ def BB(x,sorted_data, time, time2, order, updated_tasks, n = True):
         for element in tasks: ### ustalenie indeksu następnego zadania, jest to kluczowe w celu sprawdzenia jego czasu gotowości
             if element > time[-1]:
                 next_task = element
+                break
         if next_task != None:
             index = tasks.index(next_task)
         else:
