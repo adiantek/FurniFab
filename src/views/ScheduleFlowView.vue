@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { type BusinessTask, useBusinessTasks } from '@/composables/TaskComposable'
-import { computed, ref } from 'vue'
-import { isSameDay, plusMinutes } from '@/utils'
+import { FlowScript, scheduleFlow, type FlowTask } from '@/api'
 import type { ScheduledTask } from '@/components/ScheduleComponent.vue'
-import { FlowScript, type FlowTask, scheduleFlow } from '@/api'
+import { useBusinessTasks, type BusinessTask } from '@/composables/TaskComposable'
+import { plusMinutes } from '@/utils'
+import { computed, ref } from 'vue'
 
 const businessTasks = useBusinessTasks()
 
-const date = ref<Date>(new Date(new Date().setHours(8, 0, 0, 0)))
 const script = ref<FlowScript>(FlowScript.Pa)
 
 const readyTasks = computed<BusinessTask[]>(() =>
@@ -27,10 +26,6 @@ const mappedTasks = computed<ScheduledTask[]>(() =>
       for (let grinding of task.flowInfo.grinding!) {
         let [start, duration] = grinding
 
-        if (!isSameDay(start, date.value)) {
-          continue
-        }
-
         result.push({
           machine: 0,
           name: task.name,
@@ -41,10 +36,6 @@ const mappedTasks = computed<ScheduledTask[]>(() =>
 
       for (let lacquering of task.flowInfo.lacquering!) {
         let [start, duration] = lacquering
-
-        if (!isSameDay(start, date.value)) {
-          continue
-        }
 
         result.push({
           machine: 1,
@@ -81,6 +72,7 @@ function getStartingTime(minDate: Date, task: BusinessTask): number {
   )
 }
 
+const key = ref(0);
 async function schedule() {
   const tasks = [...readyTasks.value]
 
@@ -157,6 +149,7 @@ async function schedule() {
       }
     }
   })
+  key.value++
 }
 </script>
 
@@ -202,13 +195,12 @@ async function schedule() {
         Resetuj
       </button>
     </div>
-
-    <AdvancedDatePickerComponent v-model="date" />
   </div>
 
   <ScheduleComponent
     v-if="mappedTasks.length"
     :tasks="mappedTasks"
+    :key="key"
     :machine-name-formatter="(machine: number) => (machine == 0 ? 'Szlifowanie' : 'Lakierowanie')"
   />
   <h4 v-else class="m-3">Brak zadań uszeregowanych tego dnia.</h4>

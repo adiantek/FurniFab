@@ -1,34 +1,33 @@
 <script setup lang="ts">
-import ScheduleComponent, { type ScheduledTask } from '@/components/ScheduleComponent.vue'
-import { computed, ref } from 'vue'
 import {
-  type Conflict,
-  type ConflictGraph,
-  type Instance,
-  scheduleConflicts,
-  type ConflictTask,
-  ConflictAlgorithm
+ConflictAlgorithm,
+scheduleConflicts,
+type Conflict,
+type ConflictGraph,
+type ConflictTask,
+type Instance
 } from '@/api'
+import ScheduleComponent, { type ScheduledTask } from '@/components/ScheduleComponent.vue'
 import {
-  type BusinessTask,
-  getTask,
-  getTaskIndex,
-  useBusinessTasks
+getTask,
+getTaskIndex,
+useBusinessTasks,
+type BusinessTask
 } from '@/composables/TaskComposable'
-import { isSameDay, plusMinutes } from '@/utils'
+import { plusMinutes } from '@/utils'
+import { computed, ref } from 'vue'
 
 const deadline = 8 * 60
 
 const businessTasks = useBusinessTasks()
 
 const processors = ref<number>(3)
-const date = ref<Date>(new Date(new Date().setHours(8, 0, 0, 0)))
+const date = new Date(new Date().setHours(8, 0, 0, 0));
 const algorithm = ref<ConflictAlgorithm>(ConflictAlgorithm.List)
 
 const todayTasks = computed<BusinessTask[]>(() =>
   businessTasks.value
     .filter((task) => task.cuttingInfo.startingTime !== undefined)
-    .filter((task) => isSameDay(date.value, task.cuttingInfo.startingTime!))
 )
 const mappedTasks = computed<ScheduledTask[]>(() =>
   todayTasks.value
@@ -50,45 +49,50 @@ const score = computed<number>(() =>
 function reset() {
   for (let task of businessTasks.value) {
     const info = task.cuttingInfo
-    if (info.startingTime !== undefined && isSameDay(date.value, info.startingTime)) {
+    if (info.startingTime !== undefined) {
       task.cuttingInfo.startingTime = undefined
       task.cuttingInfo.machine = undefined
     }
   }
 }
 
+const key = ref(0)
 async function schedule() {
-  const tasks = [...notScheduledTasks.value]
+  let d = new Date(new Date().setHours(8, 0, 0, 0));
+  while (notScheduledTasks.value.length) {
+    const tasks = [...notScheduledTasks.value]
 
-  const apiTasks: ConflictTask[] = tasks.map((task) => ({
-    processing_time: task.cuttingInfo.processTime,
-    weight: task.cuttingInfo.weight
-  }))
+    const apiTasks: ConflictTask[] = tasks.map((task) => ({
+      processing_time: task.cuttingInfo.processTime,
+      weight: task.cuttingInfo.weight
+    }))
 
-  const graph: ConflictGraph = tasks.flatMap((task, index) =>
-    task.cuttingInfo.conflicts
-      .filter((other) => other > task.id)
-      .map((conflict) => getTaskIndex(tasks, conflict))
-      .filter((conflict) => conflict !== -1)
-      .map((conflict) => [index, conflict] as Conflict)
-  )
+    const graph: ConflictGraph = tasks.flatMap((task, index) =>
+      task.cuttingInfo.conflicts
+        .filter((other) => other > task.id)
+        .map((conflict) => getTaskIndex(tasks, conflict))
+        .filter((conflict) => conflict !== -1)
+        .map((conflict) => [index, conflict] as Conflict)
+    )
 
-  const instance: Instance = {
-    deadline,
-    processors: processors.value,
-    tasks: apiTasks,
-    graph
-  }
-
-  const schedule = await scheduleConflicts(instance, algorithm.value)
-
-  schedule.schedule.forEach((scheduleInfo, index) => {
-    if (scheduleInfo !== null) {
-      const info = tasks[index].cuttingInfo
-      info.startingTime = plusMinutes(date.value, scheduleInfo.start_time)
-      info.machine = scheduleInfo.processor
+    const instance: Instance = {
+      deadline,
+      processors: processors.value,
+      tasks: apiTasks,
+      graph
     }
-  })
+
+    const schedule = await scheduleConflicts(instance, algorithm.value)
+    schedule.schedule.forEach((scheduleInfo, index) => {
+      if (scheduleInfo !== null) {
+        const info = tasks[index].cuttingInfo
+        info.startingTime = plusMinutes(d, scheduleInfo.start_time)
+        info.machine = scheduleInfo.processor
+      }
+    })
+    key.value++
+    d.setDate(d.getDate() + 1);
+  }
 }
 </script>
 
@@ -147,14 +151,12 @@ async function schedule() {
         Resetuj
       </button>
     </div>
-
-    <AdvancedDatePickerComponent v-model="date" />
   </div>
 
   <div class="border mt-2 p-2 rounded" v-if="score">
     Suma priorytetów uszeregowanych zadań: {{ score }}
   </div>
 
-  <ScheduleComponent v-if="mappedTasks.length" :tasks="mappedTasks" />
+  <ScheduleComponent v-if="mappedTasks.length" :key="key" :tasks="mappedTasks" />
   <h4 v-else class="m-3">Brak zadań uszeregowanych tego dnia.</h4>
 </template>
