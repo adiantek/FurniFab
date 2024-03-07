@@ -4,6 +4,7 @@ use serde::Serialize;
 use serde_json::Error as SerdeError;
 use thiserror::Error;
 
+pub mod bin_packing;
 pub mod conflicts;
 pub mod data;
 pub mod flow;
