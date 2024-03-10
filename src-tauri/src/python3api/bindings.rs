@@ -101,3 +101,15 @@ extern "C" {
 extern "C" {
     pub fn python3api_free(ptr: *mut ::std::os::raw::c_char);
 }
+extern "C" {
+    pub fn python3api_ensure_gil() -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn python3api_release_gil(state: *mut ::std::os::raw::c_void);
+}
+extern "C" {
+    pub fn python3api_save_thread() -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn python3api_restore_thread(state: *mut ::std::os::raw::c_void);
+}

@@ -7,8 +7,8 @@ use crate::python3api;
 
 const PA_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/pa.py");
 const JOHNSON_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/Johnson.py");
-const JOHNSON_2_SCRIPT: &str = include_str!("../../F2,rj,pmtn,Cmax/Johnson_ver2.py");
-const BRANCH_AND_BOUND: &str = include_str!("../../F2,rj,pmtn,Cmax/BB.py");
+const JOHNSON_2_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/Johnson_ver2.py");
+const BRANCH_AND_BOUND: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/BB.py");
 
 #[derive(Debug, Deserialize)]
 pub enum Script {
@@ -54,11 +54,16 @@ pub struct ScheduleRawResult {
     result_2: HashMap<String, Vec<Vec<u64>>>,
 }
 
-fn parse_schedule_infos(task_schedules: HashMap<String, Vec<Vec<u64>>>) -> Result<Vec<Vec<ScheduleInfo>>, Error> {
+fn parse_schedule_infos(
+    task_schedules: HashMap<String, Vec<Vec<u64>>>,
+) -> Result<Vec<Vec<ScheduleInfo>>, Error> {
     let mut infos: Vec<Vec<ScheduleInfo>> = vec![Vec::new(); task_schedules.len()];
 
     for (key, value) in task_schedules.iter() {
-        let task_schedules = &mut infos[key.parse::<usize>().map_err(|_| Error::Serde("invalid number".to_string()))? - 1];
+        let task_schedules = &mut infos[key
+            .parse::<usize>()
+            .map_err(|_| Error::Serde("invalid number".to_string()))?
+            - 1];
         for timings in value {
             let mut timings = timings.iter();
             task_schedules.push(ScheduleInfo {
@@ -76,50 +81,20 @@ fn parse_schedule_infos(task_schedules: HashMap<String, Vec<Vec<u64>>>) -> Resul
 }
 
 #[tauri::command]
-pub async fn run_flow(
-    app_handle: tauri::AppHandle,
-    tasks: Vec<Task>,
-    script: Script,
-) -> Result<Schedule, Error> {
+pub async fn run_flow(tasks: Vec<Task>, script: Script) -> Result<Schedule, Error> {
     let mut input_data = vec![vec![0; 3]; tasks.len()];
     for (i, task) in tasks.iter().enumerate() {
         input_data[i][0] = task.start_time as i32;
         input_data[i][1] = task.grinding_time as i32;
         input_data[i][2] = task.lacquering_time as i32;
     }
-    let input_data_str = serde_json::to_string(&input_data).map_err(Error::from);
-    if input_data_str.is_err() {
-        return Err(input_data_str.unwrap_err());
-    }
-    let input_data_str = input_data_str.unwrap();
+    let input_data_str = serde_json::to_string(&input_data).map_err(Error::from)?;
+    let output_str = python3api::eval_python(script.script(), "run_algorithm", &input_data_str)?;
+    let output: ScheduleRawResult = serde_json::from_str(&output_str).map_err(Error::from)?;
 
-    let output = python3api::eval_python(
-        app_handle,
-        script.script(),
-        "run_algorithm",
-        &input_data_str,
-    );
-    if output.is_err() {
-        return Err(output.unwrap_err());
-    }
-    let output = output.unwrap();
+    let grinding = parse_schedule_infos(output.result_1)?;
+    let lacquering = parse_schedule_infos(output.result_2)?;
 
-    let output: Result<ScheduleRawResult, Error> = serde_json::from_str(&output).map_err(Error::from);
-    if output.is_err() {
-        return Err(output.unwrap_err());
-    }
-    let output = output.unwrap();
-
-    let grinding = parse_schedule_infos(output.result_1);
-    if grinding.is_err() {
-        return Err(grinding.unwrap_err());
-    }
-    let grinding = grinding.unwrap();
-    let lacquering = parse_schedule_infos(output.result_2);
-    if lacquering.is_err() {
-        return Err(lacquering.unwrap_err());
-    }
-    let lacquering = lacquering.unwrap();
     Ok(Schedule {
         grinding,
         lacquering,

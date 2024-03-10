@@ -3,9 +3,11 @@
 
 use app::conflicts::*;
 use app::flow::*;
+use app::python3api::*;
 use serde::Serialize;
 use tauri::api::process::{Command, CommandEvent};
 use tauri::AppHandle;
+use tauri::RunEvent;
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -54,12 +56,22 @@ async fn run_resource(handle: AppHandle, exec: String, stdin: String) -> Result<
 }
 
 fn main() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             run_resource,
             run_scheduling_conflicts,
             run_flow
         ])
-        .run(tauri::generate_context!())
+        .setup(|app| {
+            run_python_init(app.handle());
+            Ok(())
+        })
+        .build(tauri::generate_context!())
         .expect("error while running tauri application");
+    app.run(|_app_handle, event| match event {
+        RunEvent::Exit => {
+            run_python_finalize();
+        },
+        _ => {}
+    });
 }
