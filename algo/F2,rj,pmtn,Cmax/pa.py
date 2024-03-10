@@ -39,25 +39,39 @@ def MainLoop():
             break
         else:
             T=T+L
-print("Nazwa pliku:")
-file_name = input()
-k=1
-with open(file_name, 'r') as file:
-    for numbers in file:
-        element = tuple(map(int, numbers.split())) + (k,)
+
+def run_algorithm(input_data):
+    global data, time, time2
+    k=1
+    for numbers in input_data:
+        element = tuple(numbers) + (k,)
         data.append(element)
         time[k]=[]
         time2[k]=[]
         k=k+1
-MainLoop()
-print(order)
-print(time)
-print(time2)
-with open('result_pa.txt', 'w') as file:
-    # Iteracja przez słownik i zapisywanie kluczy i wartości
-    file.write("Zadania na pierwszej maszynie: \n")
-    for key, value in time.items():
-        file.write(f'{key}: {value}\n')
-    file.write("Zadania na drugiej maszynie: \n")
-    for key, value in time2.items():
-        file.write(f'{key}: {value}\n')
+    MainLoop()
+    res = {}
+    res['result_1'] = time
+    res['result_2'] = time2
+    return res
+
+if __name__ == "__main__":
+    print("Nazwa pliku:")
+    file_name = input()
+    k=1
+    input_data = []
+    with open(file_name, 'r') as file:
+        for numbers in file:
+            input_data.append(list(map(int, numbers.split())))
+    run_algorithm(input_data)
+    print(order)
+    print(time)
+    print(time2)
+    with open('result_pa.txt', 'w') as file:
+        # Iteracja przez słownik i zapisywanie kluczy i wartości
+        file.write("Zadania na pierwszej maszynie: \n")
+        for key, value in time.items():
+            file.write(f'{key}: {value}\n')
+        file.write("Zadania na drugiej maszynie: \n")
+        for key, value in time2.items():
+            file.write(f'{key}: {value}\n')

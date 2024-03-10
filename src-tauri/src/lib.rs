@@ -1,8 +1,7 @@
 pub mod conflicts;
 pub mod flow;
-pub(crate) mod python;
+pub mod python3api;
 
-use pyo3::PyErr;
 use serde::Serialize;
 use serde_json::Error as SerdeError;
 use thiserror::Error;
@@ -20,11 +19,5 @@ pub enum Error {
 impl From<SerdeError> for Error {
     fn from(error: SerdeError) -> Self {
         Error::Serde(error.to_string())
-    }
-}
-
-impl From<PyErr> for Error {
-    fn from(error: PyErr) -> Self {
-        Error::Python(error.to_string())
     }
 }
