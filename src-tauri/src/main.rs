@@ -1,13 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use app::conflicts::*;
-use app::flow::*;
-use app::python3api::*;
 use serde::Serialize;
 use tauri::api::process::{Command, CommandEvent};
-use tauri::AppHandle;
-use tauri::RunEvent;
+use tauri::{AppHandle, RunEvent};
+
+use app::conflicts::*;
+use app::flow::*;
+use app::python3api::Python;
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -62,16 +62,13 @@ fn main() {
             run_scheduling_conflicts,
             run_flow
         ])
-        .setup(|app| {
-            run_python_init(app.handle());
-            Ok(())
-        })
+        .setup(|app| Python::initialize(app.handle()))
         .build(tauri::generate_context!())
-        .expect("error while running tauri application");
-    app.run(|_app_handle, event| match event {
-        RunEvent::Exit => {
-            run_python_finalize();
-        },
-        _ => {}
+        .expect("error while building tauri application");
+
+    app.run(|_, event| {
+        if let RunEvent::Exit = event {
+            Python::finalize().expect("failed to finalize python");
+        }
     });
 }

@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use crate::Error;
 use serde::{Deserialize, Serialize};
 
-use crate::python3api;
+use crate::python3api::Python;
+use crate::Error;
 
 const PA_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/pa.py");
 const JOHNSON_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/Johnson.py");
@@ -50,29 +50,23 @@ pub struct Schedule {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct ScheduleRawResult {
-    result_1: HashMap<String, Vec<Vec<u64>>>,
-    result_2: HashMap<String, Vec<Vec<u64>>>,
+    result_1: HashMap<String, Vec<[u64; 2]>>,
+    result_2: HashMap<String, Vec<[u64; 2]>>,
 }
 
 fn parse_schedule_infos(
-    task_schedules: HashMap<String, Vec<Vec<u64>>>,
+    task_schedules: HashMap<String, Vec<[u64; 2]>>,
 ) -> Result<Vec<Vec<ScheduleInfo>>, Error> {
     let mut infos: Vec<Vec<ScheduleInfo>> = vec![Vec::new(); task_schedules.len()];
 
-    for (key, value) in task_schedules.iter() {
-        let task_schedules = &mut infos[key
-            .parse::<usize>()
-            .map_err(|_| Error::Serde("invalid number".to_string()))?
-            - 1];
+    for (key, value) in task_schedules {
+        let key: usize = key.parse()?;
+        let task_schedules = &mut infos[key - 1];
         for timings in value {
-            let mut timings = timings.iter();
+            let [start_time, end_time] = timings;
             task_schedules.push(ScheduleInfo {
-                start_time: *timings
-                    .next()
-                    .ok_or(Error::Serde("missing start time".to_string()))?,
-                end_time: *timings
-                    .next()
-                    .ok_or(Error::Serde("missing end time".to_string()))?,
+                start_time,
+                end_time,
             })
         }
     }
@@ -82,15 +76,12 @@ fn parse_schedule_infos(
 
 #[tauri::command]
 pub async fn run_flow(tasks: Vec<Task>, script: Script) -> Result<Schedule, Error> {
-    let mut input_data = vec![vec![0; 3]; tasks.len()];
-    for (i, task) in tasks.iter().enumerate() {
-        input_data[i][0] = task.start_time as i32;
-        input_data[i][1] = task.grinding_time as i32;
-        input_data[i][2] = task.lacquering_time as i32;
-    }
-    let input_data_str = serde_json::to_string(&input_data).map_err(Error::from)?;
-    let output_str = python3api::eval_python(script.script(), "run_algorithm", &input_data_str)?;
-    let output: ScheduleRawResult = serde_json::from_str(&output_str).map_err(Error::from)?;
+    let data: Vec<[u64; 3]> = tasks
+        .into_iter()
+        .map(|task| [task.start_time, task.grinding_time, task.lacquering_time])
+        .collect();
+
+    let output: ScheduleRawResult = Python::eval_with_gil(script.script(), "run_algorithm", data)?;
 
     let grinding = parse_schedule_infos(output.result_1)?;
     let lacquering = parse_schedule_infos(output.result_2)?;

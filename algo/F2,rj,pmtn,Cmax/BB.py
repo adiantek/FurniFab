@@ -4,9 +4,13 @@ import copy
 the_best = sys.float_info.max
 time_the_best = []
 time2_the_best = []
-order_the_best=[]
-def add_to_the_first_machine(x,time):
-    if len(time)==0:
+order_the_best = []
+result = {}
+result2 = {}
+
+
+def add_to_the_first_machine(x, time):
+    if len(time) == 0:
         time.append(x[0])
     elif x[0] > time[-1]:
         time.append(x[0])
@@ -14,11 +18,12 @@ def add_to_the_first_machine(x,time):
         time.append(time[-1])
     return time
 
+
 def add_to_the_second_machine(x, time, time2):
     if len(time2) == 1:
         time2.pop(-1)
         time2.append(time[-1])
-        time2.append(time2[-1]+x[2])
+        time2.append(time2[-1] + x[2])
     else:
         if time2[-1] > time[-1]:
             time2.append(time2[-1])
@@ -28,14 +33,16 @@ def add_to_the_second_machine(x, time, time2):
             time2.append(time[-1] + x[2])
     return time2
 
-def update_parameters(time2,time,order):
-    global the_best,order_the_best, time_the_best, time2_the_best
+
+def update_parameters(time2, time, order):
+    global the_best, order_the_best, time_the_best, time2_the_best
     the_best = time2[-1]
     order_the_best = order.copy()
     time_the_best = time.copy()
     time2_the_best = time2.copy()
 
-def do_whole_task(time,tasks,updated_tasks, x, sorted_data, time2, order, index, n):
+
+def do_whole_task(time, tasks, updated_tasks, x, sorted_data, time2, order, index, n):
     time.append(time[-1] + x[1])
     current_task_index = sorted_data[x[0]].index(x)
     sorted_data[x[0]].pop(current_task_index)
@@ -43,16 +50,18 @@ def do_whole_task(time,tasks,updated_tasks, x, sorted_data, time2, order, index,
     time2 = add_to_the_second_machine(x, time.copy(), time2.copy())
     if len(sorted_data[x[0]]) == 0:
         del sorted_data[x[0]]
-    filtered_tasks = [t for t in updated_tasks_copy if t[0] < time[-1] and t[1] > 0] ### następnie zadanie trzeba wybrać spośród poprzednich, nieskończonych zadań
+    filtered_tasks = [t for t in updated_tasks_copy if t[0] < time[-1] and t[
+        1] > 0]  ### następnie zadanie trzeba wybrać spośród poprzednich, nieskończonych zadań
     if len(filtered_tasks) > 0:
         for f in filtered_tasks:
             BB(f, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy, n)
-    else: ### jeśli nie ma poprzednich nieskończonych zadań, bierzemy następne zadanie, które dopiero przyjdzie
+    else:  ### jeśli nie ma poprzednich nieskończonych zadań, bierzemy następne zadanie, które dopiero przyjdzie
         for i in range(len((sorted_data[tasks[index]]))):
             next_task = sorted_data[tasks[index]][i]
             BB(next_task, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy, n)
 
-def abort_task(time,tasks,updated_tasks, x, sorted_data, time2, order, index):
+
+def abort_task(time, tasks, updated_tasks, x, sorted_data, time2, order, index):
     t = tasks[index] - time[-1]  ### wyliczanie ile czasu obecne zadanie będzie wykonywane zanim pojawi się następne
     time.append(time[-1] + t)
     updated_tasks_copy = [z if z[3] != x[3] else z[:1] + (z[1] - t,) + z[2:] for z in updated_tasks]
@@ -63,14 +72,17 @@ def abort_task(time,tasks,updated_tasks, x, sorted_data, time2, order, index):
     for i in range(len((sorted_data[tasks[index]]))):
         next_task = sorted_data[tasks[index]][i]
         BB(next_task, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy)
-    BB(x, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy) #### jednak nie przerywamy zadania
+    BB(x, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(),
+       updated_tasks_copy)  #### jednak nie przerywamy zadania
+
+
 ### n to parametr określający czy będą jeszcze napływać nowe zadania
-def BB(x,sorted_data, time, time2, order, updated_tasks, n = True):
+def BB(x, sorted_data, time, time2, order, updated_tasks, n=True):
     global the_best
     global order_the_best
     global time_the_best
     global time2_the_best
-    #print("-----------------------")
+    # print("-----------------------")
     # print("x",x)
     # print("time",time)
     # print("time2",time2)
@@ -80,16 +92,16 @@ def BB(x,sorted_data, time, time2, order, updated_tasks, n = True):
     # print("next_task",next_task)
     order.append(x[3])
     time = add_to_the_first_machine(x, time.copy())
-    if len(updated_tasks)==1 and updated_tasks[0]==x: ### zostało już tylko jedno zadanie do wykonania
-        time.append(time[-1]+x[1])
+    if len(updated_tasks) == 1 and updated_tasks[0] == x:  ### zostało już tylko jedno zadanie do wykonania
+        time.append(time[-1] + x[1])
         time2 = add_to_the_second_machine(x, time.copy(), time2.copy())
-        if time2[-1]<the_best:
-            update_parameters(time2.copy(), time.copy(),order)
+        if time2[-1] < the_best:
+            update_parameters(time2.copy(), time.copy(), order)
         return
     if time2[-1] < the_best:
         tasks = list(sorted_data.keys())
         next_task = None
-        for element in tasks: ### ustalenie indeksu następnego zadania, jest to kluczowe w celu sprawdzenia jego czasu gotowości
+        for element in tasks:  ### ustalenie indeksu następnego zadania, jest to kluczowe w celu sprawdzenia jego czasu gotowości
             if element > time[-1]:
                 next_task = element
                 break
@@ -98,82 +110,117 @@ def BB(x,sorted_data, time, time2, order, updated_tasks, n = True):
         else:
             index = None
         if index and n == True:
-            if tasks[index] < time[-1] + x[1]: ### trzeba uwzględnić fakt, że zadanie może zostać przerwane
-                abort_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(), order.copy(), index)
-            else: ### zadanie wykona się w całości, nie przybędzie w tym czasie żadne nowe zadanie
-                do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(), order.copy(), index, n)
-        elif index == None and n == True: #### ostatnie zadanie na liście, nie będą przychodzić już następne zadania
-            n=False
-            do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(), order.copy(), index, n)
-        else: ### poruszamy się po poprzednich nieskończonych zadaniach
-            do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(), order.copy(), index, n)
+            if tasks[index] < time[-1] + x[1]:  ### trzeba uwzględnić fakt, że zadanie może zostać przerwane
+                abort_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(),
+                           order.copy(), index)
+            else:  ### zadanie wykona się w całości, nie przybędzie w tym czasie żadne nowe zadanie
+                do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data),
+                              time2.copy(), order.copy(), index, n)
+        elif index == None and n == True:  #### ostatnie zadanie na liście, nie będą przychodzić już następne zadania
+            n = False
+            do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(),
+                          order.copy(), index, n)
+        else:  ### poruszamy się po poprzednich nieskończonych zadaniach
+            do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(),
+                          order.copy(), index, n)
 
 
-#print("Ilość wprowadzonych danych:")
-#n = int(input())
-data={}
-tasks=[]
-k=1
-print("Nazwa pliku:")
-file_name = input()
-with open(file_name, 'r') as file:
-    for numbers in file:
-        element = tuple(map(int, numbers.split())) + (k,)
+def prepare_data():
+    global order_the_best, time_the_best, order_list, time2_the_best, result, result2
+
+    for index, value in enumerate(order_the_best):
+        time_start_index = index * 2
+        time_end_index = time_start_index + 1
+
+        if time_end_index < len(time_the_best):
+            time = [time_the_best[time_start_index], time_the_best[time_end_index]]
+            if value in result:
+                result[value].append(time)
+            else:
+                result[value] = [time]
+
+    order_list = []
+
+    for item in reversed(order_the_best):
+        if item not in order_list:
+            order_list.append(item)
+    order_list = reversed(order_list)
+    for index, value in enumerate(order_list):
+        time_start_index = index * 2
+        time_end_index = time_start_index + 1
+
+        if time_end_index < len(time_the_best):
+            time = [time2_the_best[time_start_index], time2_the_best[time_end_index]]
+            result2[value] = [time]
+
+    result = {k: result[k] for k in sorted(result)}
+    result2 = {k: result2[k] for k in sorted(result2)}
+
+
+##### tylko do frontendu
+def run_algorithm(input_data):
+    data = {}
+    tasks = []
+    k=1
+    for numbers in input_data:
+        element = tuple(numbers) + (k,)
         if int(element[0]) in data:
             data[int(element[0])].append(element)
         else:
             data[int(element[0])] = [element]
         tasks.append(element)
         k = k + 1
-sorted_data = {k: data[k] for k in sorted(data)}
-sorted_tasks = sorted(tasks,key=lambda x:x[0])
-
-for i in range(len(sorted_data[list(sorted_data.keys())[0]])):
-    for j in range(len(sorted_data[list(sorted_data.keys())[1]])):
-        BB(sorted_data[list(sorted_data.keys())[0]][i], copy.deepcopy(sorted_data), [], [1000], [], sorted_tasks)
-
-print("----------------------")
-print(the_best)
-print(order_the_best)
-print(time_the_best)
-print(time2_the_best)
-############### Przygotowanie danych do zapisu
-result = {}
-result2 = {}
-for index, value in enumerate(order_the_best):
-    time_start_index = index * 2
-    time_end_index = time_start_index + 1
-
-    if time_end_index < len(time_the_best):
-        time = [time_the_best[time_start_index], time_the_best[time_end_index]]
-        if value in result:
-            result[value].append(time)
-        else:
-            result[value] = [time]
 
 
-order_list = []
+    sorted_data = {k: data[k] for k in sorted(data)}
+    sorted_tasks = sorted(tasks, key=lambda x: x[0])
 
-for item in reversed(order_the_best):
-    if item not in order_list:
-        order_list.append(item)
-order_list = reversed(order_list)
-for index, value in enumerate(order_list):
-    time_start_index = index * 2
-    time_end_index = time_start_index + 1
-
-    if time_end_index < len(time_the_best):
-        time = [time2_the_best[time_start_index], time2_the_best[time_end_index]]
-        result2[value] = [time]
-
-result = {k: result[k] for k in sorted(result)}
-result2 = {k: result2[k] for k in sorted(result2)}
-print(result)
-print(result2)
-with open('result_BB.txt', 'w') as file:
-    file.write("Zadania na pierwszej maszynie: \n")
-    for key, value in result.items():
-        file.write(f'{key}: {value}\n')
-    file.write("Zadania na drugiej maszynie: \n")
-    for key, value in result2.items():
-        file.write(f'{key}: {value}\n')
+    for i in range(len(sorted_data[list(sorted_data.keys())[0]])):
+        for j in range(len(sorted_data[list(sorted_data.keys())[1]])):
+            BB(sorted_data[list(sorted_data.keys())[0]][i], copy.deepcopy(sorted_data), [], [1000], [], sorted_tasks)
+    prepare_data()
+    res = {}
+    res['result_1'] = result
+    res['result_2'] = result2
+    return res
+    
+if __name__ == "__main__":
+    # print("Ilość wprowadzonych danych:")
+    # n = int(input())
+    data = {}
+    tasks = []
+    k = 1
+    print("Nazwa pliku:")
+    file_name = input()
+    
+    with open(file_name, 'r') as file:
+        for numbers in file:
+            element = tuple(map(int, numbers.split())) + (k,)
+            if int(element[0]) in data:
+                data[int(element[0])].append(element)
+            else:
+                data[int(element[0])] = [element]
+            tasks.append(element)
+            k = k + 1
+    sorted_data = {k: data[k] for k in sorted(data)}
+    sorted_tasks = sorted(tasks, key=lambda x: x[0])
+    
+    for i in range(len(sorted_data[list(sorted_data.keys())[0]])):
+        for j in range(len(sorted_data[list(sorted_data.keys())[1]])):
+            BB(sorted_data[list(sorted_data.keys())[0]][i], copy.deepcopy(sorted_data), [], [1000], [], sorted_tasks)
+    prepare_data()
+    print("----------------------")
+    print(the_best)
+    print(order_the_best)
+    print(time_the_best)
+    print(time2_the_best)
+    
+    print(result)
+    print(result2)
+    with open('result_BB.txt', 'w') as file:
+        file.write("Zadania na pierwszej maszynie: \n")
+        for key, value in result.items():
+            file.write(f'{key}: {value}\n')
+        file.write("Zadania na drugiej maszynie: \n")
+        for key, value in result2.items():
+            file.write(f'{key}: {value}\n')

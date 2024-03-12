@@ -1,10 +1,11 @@
-use core::ffi;
-use std::{
-    ffi::{CStr, CString},
-    os::raw::c_void,
-    process,
-    ptr::null_mut,
-};
+use std::ffi::{CStr, CString};
+use std::os::raw::c_void;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::OnceLock;
+
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+use tauri::AppHandle;
 
 use crate::Error;
 
@@ -12,83 +13,167 @@ use self::bindings::*;
 
 mod bindings;
 
-static mut THREAD_STATE: ffi::c_ulonglong = 0;
+static API_STR: &CStr = match CStr::from_bytes_with_nul(b"__api__\0") {
+    Ok(value) => value,
+    Err(_) => panic!("invalid CStr"),
+};
+static PYTHON: OnceLock<Python> = OnceLock::new();
 
-pub fn run_python_init(app: tauri::AppHandle) {
-    let resource_path: std::path::PathBuf = app
-        .path_resolver()
-        .resolve_resource("resources/python.zip.enc")
-        .expect("failed to resolve resource");
-    let path_str = CString::new(resource_path.to_str().unwrap()).unwrap();
-    let status: bindings::PyStatus = unsafe { python3api_init(path_str.as_ptr(), 0, null_mut()) };
-    if status._type != PyStatus__PyStatus_TYPE_OK {
-        let err_msg = unsafe { CStr::from_ptr(status.err_msg).to_str().unwrap() };
-        println!("Python3 API init err_msg: {:?}", err_msg);
-        if status._type == PyStatus__PyStatus_TYPE_EXIT {
-            println!("Python3 API init exitcode: {:?}", status.exitcode);
-            process::exit(status.exitcode as i32);
+/// Represents global python state.
+pub struct Python {
+    callback: *mut c_void,
+    finalized: AtomicBool,
+}
+
+/// It's safe to assume that Python is Send, because we manage
+/// its initialization and finalization with thread safety in mind.
+unsafe impl Send for Python {}
+
+/// It's safe to assume that Python is Sync, because we manage
+/// its initialization and finalization with thread safety in mind.
+unsafe impl Sync for Python {}
+
+impl Python {
+    /// Initializes the global python state.
+    /// This function should be called only once,
+    /// but it's safe to call it from multiple threads multiple times.
+    ///
+    /// Panics if python initialization fails.
+    pub fn initialize(handle: AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+        if PYTHON.get().is_some() {
+            return Ok(());
         }
-    }
-    unsafe { THREAD_STATE = python3api_save_thread() as ffi::c_ulonglong };
-}
 
-pub fn run_python_finalize() {
-    unsafe {
-        let thread_state = THREAD_STATE as *mut c_void;
-        python3api_restore_thread(thread_state);
-    }
-    let status: i32 = unsafe { bindings::python3api_finalize() };
-    if status != 0 {
-        println!("Python3 API finalize status: {:?}", status);
-    }
-}
+        let path = handle
+            .path_resolver()
+            .resolve_resource("resources/python.zip.enc")
+            .ok_or("resource not found")?;
+        let path_str = CString::new(path.to_str().ok_or("path is not valid UTF-8 string")?)?;
 
-fn python_clear() -> Option<Error> {
-    unsafe {
-        let module_name = CString::new("__api__").unwrap();
-        if !python3api_clear(module_name.as_ptr()) {
-            println!("Failed to clear python module");
-            return Some(Error::Python("Failed to clear python module".to_string()));
+        PYTHON.get_or_init(|| {
+            let status = unsafe { python3api_init(path_str.as_ptr(), 0, std::ptr::null_mut()) };
+
+            #[allow(non_upper_case_globals)]
+            match status._type {
+                PyStatus__PyStatus_TYPE_EXIT => {
+                    panic!("Python3API init exit code: {}", status.exitcode)
+                }
+                PyStatus__PyStatus_TYPE_OK => Self {
+                    callback: unsafe { python3api_save_thread() },
+                    finalized: AtomicBool::new(false),
+                },
+                _ => panic!("Python3API error: {}", unsafe {
+                    CStr::from_ptr(status.err_msg)
+                        .to_str()
+                        .expect("Python3API: invalid error message")
+                }),
+            }
+        });
+
+        Ok(())
+    }
+
+    /// Finalizes the global python state.
+    /// This function should be called only once,
+    /// but it's safe to call it from multiple threads multiple times.
+    /// If python wasn't initialized, this function does nothing.
+    ///
+    /// Returns an error if python finalization fails.
+    pub fn finalize() -> Result<(), i32> {
+        if let Some(python) = PYTHON.get() {
+            if !python.finalized.swap(true, Ordering::Relaxed) {
+                let status = unsafe {
+                    python3api_restore_thread(python.callback);
+                    python3api_finalize()
+                };
+
+                if status != 0 {
+                    return Err(status);
+                }
+            }
         }
-        None
-    }
-}
 
-fn python_eval(code: &str, start: i32) -> Result<String, Error> {
-    unsafe {
-        let module_name = CString::new("__api__").unwrap();
-        let code_raw = CString::new(code).unwrap();
-        let res = python3api_eval(module_name.as_ptr(), code_raw.as_ptr(), start);
-        if res.is_null() {
-            Err(Error::Python("failed".to_owned()))
-        } else {
-            let result = CStr::from_ptr(res).to_str().unwrap().to_string();
-            python3api_free(res);
-            Ok(result)
+        Ok(())
+    }
+
+    /// Acquires the python global interpreter lock.
+    ///
+    /// Panics if python wasn't initialized or if it was finalized.
+    pub fn acquire_gil() -> PythonGIL {
+        if PYTHON.get().filter(|state| !state.is_finalized()).is_none() {
+            panic!("python not available")
         }
+
+        PythonGIL::acquire()
+    }
+
+    /// Evaluates python code and calls a function with the given data.
+    /// This function acquires the global interpreter lock for the duration of the call.
+    pub fn eval_with_gil<I, O>(code: &str, function: &str, data: I) -> Result<O, Error>
+    where
+        I: Serialize,
+        O: DeserializeOwned,
+    {
+        Self::acquire_gil().eval(code, function, data)
+    }
+
+    fn is_finalized(&self) -> bool {
+        self.finalized.load(Ordering::Relaxed)
     }
 }
 
-fn eval_in_python_thread(code: &str, function: &str, input_data: &str) -> Result<String, Error> {
-    let result = python_clear();
-    if result.is_some() {
-        return Err(result.unwrap());
+/// Represents a global interpreter lock.
+pub struct PythonGIL(*mut c_void);
+
+impl PythonGIL {
+    fn acquire() -> Self {
+        Self(unsafe { python3api_ensure_gil() })
     }
-    let result = python_eval("import json", Py_file_input)?;
-    if result != "None" {
-        return Err(Error::Python("Failed to load json".to_string()));
+
+    /// Evaluates python code and calls a function with the given data.
+    pub fn eval<I, O>(&self, code: &str, function: &str, data: I) -> Result<O, Error>
+    where
+        I: Serialize,
+        O: DeserializeOwned,
+    {
+        unsafe { python3api_clear(API_STR.as_ptr()) }
+            .then_some(())
+            .ok_or(Error::Python("failed to clear python module".into()))?;
+
+        if Self::eval_impl("import json", Py_file_input)? != "None" {
+            return Err(Error::Python("failed to load json".into()));
+        }
+
+        if Self::eval_impl(code, Py_file_input)? != "None" {
+            return Err(Error::Python("failed to load code".into()));
+        }
+
+        let code = format!("json.dumps({function}({}))", serde_json::to_string(&data)?);
+        let result = Self::eval_impl(&code, Py_eval_input)?;
+        Ok(serde_json::from_str(&result)?)
     }
-    let result = python_eval(code, Py_file_input)?;
-    if result != "None" {
-        return Err(Error::Python("Failed to load code".to_string()));
+
+    fn eval_impl(code: &str, start: i32) -> Result<String, Error> {
+        let code = CString::new(code).map_err(|_| Error::Python("invalid code".into()))?;
+        let result_ref = unsafe { python3api_eval(API_STR.as_ptr(), code.as_ptr(), start) };
+
+        (!result_ref.is_null())
+            .then_some(())
+            .ok_or(Error::Python("running python failed".into()))?;
+
+        let result = unsafe { CStr::from_ptr(result_ref) }
+            .to_str()
+            .map_err(|_| Error::Python("invalid result string".into()))?
+            .to_string();
+
+        unsafe { python3api_free(result_ref) };
+
+        Ok(result)
     }
-    let query = format!("json.dumps({}({}))", function, input_data);
-    python_eval(&query, Py_eval_input)
 }
 
-pub fn eval_python(code: &str, function: &str, input_data: &str) -> Result<String, Error> {
-    let state = unsafe { python3api_ensure_gil() };
-    let result = eval_in_python_thread(code, function, input_data);
-    unsafe { python3api_release_gil(state) };
-    return result;
+impl Drop for PythonGIL {
+    fn drop(&mut self) {
+        unsafe { python3api_release_gil(self.0) }
+    }
 }

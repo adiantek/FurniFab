@@ -4,6 +4,7 @@ pub mod python3api;
 
 use serde::Serialize;
 use serde_json::Error as SerdeError;
+use std::num::ParseIntError;
 use thiserror::Error;
 
 #[derive(Clone, Debug, Eq, Error, PartialEq, Serialize)]
@@ -18,6 +19,12 @@ pub enum Error {
 
 impl From<SerdeError> for Error {
     fn from(error: SerdeError) -> Self {
+        Error::Serde(error.to_string())
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(error: ParseIntError) -> Self {
         Error::Serde(error.to_string())
     }
 }
