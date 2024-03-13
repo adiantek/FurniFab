@@ -84,26 +84,39 @@ def MainLoop():
         if len(all_tasks) == 0:
             break
 
-
-print("Nazwa pliku:")
-file_name = input()
-k=1
-with open(file_name, 'r') as file:
-    for numbers in file:
-        element = tuple(map(int, numbers.split())) + (k,)
+def run_algorithm(input_data):
+    global all_tasks, result, result2
+    k=1
+    for numbers in input_data:
+        element = tuple(numbers) + (k,)
         all_tasks.append(element)
         k=k+1
         result[element[3]] = []
         result2[element[3]] = []
-MainLoop()
-print(list(set(time)))
-print(order)
-print(result)
-print(result2)
-with open('result_pa.txt', 'w') as file:
-    file.write("Zadania na pierwszej maszynie: \n")
-    for key, value in result.items():
-        file.write(f'{key}: {value}\n')
-    file.write("Zadania na drugiej maszynie: \n")
-    for key, value in result2.items():
-        file.write(f'{key}: {value}\n')
+    MainLoop()
+    res = {}
+    res['result_1'] = result
+    res['result_2'] = result2
+    return res
+
+import json
+
+if __name__ == '__main__':
+    print("Nazwa pliku:")
+    file_name = input()
+    input_data = []
+    with open(file_name, 'r') as file:
+        for numbers in file:
+            input_data.append(list(map(int, numbers.split())))
+    print(json.dumps(run_algorithm(input_data)))
+    print(list(set(time)))
+    print(order)
+    print(result)
+    print(result2)
+    with open('result_pa.txt', 'w') as file:
+        file.write("Zadania na pierwszej maszynie: \n")
+        for key, value in result.items():
+            file.write(f'{key}: {value}\n')
+        file.write("Zadania na drugiej maszynie: \n")
+        for key, value in result2.items():
+            file.write(f'{key}: {value}\n')

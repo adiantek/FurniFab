@@ -1,16 +1,14 @@
-use crate::{python, Error};
-use pyo3::exceptions::PyValueError;
-use pyo3::types::{PyDict, PyList, PyModule};
-use pyo3::PyErr;
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
+use crate::python3api::Python;
+use crate::Error;
 
 const PA_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/pa.py");
 const JOHNSON_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/Johnson.py");
-const JOHNSON_2_SCRIPT: &str = include_str!("../../F2,rj,pmtn,Cmax/Johnson_ver2.py");
-const BRANCH_AND_BOUND: &str = include_str!("../../F2,rj,pmtn,Cmax/BB.py");
-const FILENAME: &str = "file.txt";
-const MODULE_NAME: &str = "flow";
-const MODULE_FILENAME: &str = "flow.py";
+const JOHNSON_2_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/Johnson_ver2.py");
+const BRANCH_AND_BOUND: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/BB.py");
 
 #[derive(Debug, Deserialize)]
 pub enum Script {
@@ -27,20 +25,6 @@ impl Script {
             Script::Johnson => JOHNSON_SCRIPT,
             Script::Johnson2 => JOHNSON_2_SCRIPT,
             Script::BranchAndBound => BRANCH_AND_BOUND,
-        }
-    }
-
-    fn first_result(&self) -> &'static str {
-        match self {
-            Script::Pa => "time",
-            _ => "result",
-        }
-    }
-
-    fn second_result(&self) -> &'static str {
-        match self {
-            Script::Pa => "time2",
-            _ => "result2",
         }
     }
 }
@@ -64,22 +48,25 @@ pub struct Schedule {
     lacquering: Vec<Vec<ScheduleInfo>>,
 }
 
-fn parse_schedule_infos(dict: &PyDict) -> Result<Vec<Vec<ScheduleInfo>>, PyErr> {
-    let mut infos: Vec<Vec<ScheduleInfo>> = vec![Vec::new(); dict.len()];
+#[derive(Clone, Debug, Deserialize)]
+pub struct ScheduleRawResult {
+    result_1: HashMap<String, Vec<[u64; 2]>>,
+    result_2: HashMap<String, Vec<[u64; 2]>>,
+}
 
-    for (key, value) in dict {
-        let task_schedules = &mut infos[key.extract::<usize>()? - 1];
-        for timings in value.extract::<&PyList>()? {
-            let mut timings = timings.extract::<&PyList>()?.into_iter();
+fn parse_schedule_infos(
+    task_schedules: HashMap<String, Vec<[u64; 2]>>,
+) -> Result<Vec<Vec<ScheduleInfo>>, Error> {
+    let mut infos: Vec<Vec<ScheduleInfo>> = vec![Vec::new(); task_schedules.len()];
+
+    for (key, value) in task_schedules {
+        let key: usize = key.parse()?;
+        let task_schedules = &mut infos[key - 1];
+        for timings in value {
+            let [start_time, end_time] = timings;
             task_schedules.push(ScheduleInfo {
-                start_time: timings
-                    .next()
-                    .ok_or(PyValueError::new_err("missing start time"))?
-                    .extract()?,
-                end_time: timings
-                    .next()
-                    .ok_or(PyValueError::new_err("missing end time"))?
-                    .extract()?,
+                start_time,
+                end_time,
             })
         }
     }
@@ -89,34 +76,18 @@ fn parse_schedule_infos(dict: &PyDict) -> Result<Vec<Vec<ScheduleInfo>>, PyErr> 
 
 #[tauri::command]
 pub async fn run_flow(tasks: Vec<Task>, script: Script) -> Result<Schedule, Error> {
-    Ok(python::with_enhanced_gil(|py, _, file| {
-        let list = py.import("builtins")?.getattr("list")?;
+    let data: Vec<[u64; 3]> = tasks
+        .into_iter()
+        .map(|task| [task.start_time, task.grinding_time, task.lacquering_time])
+        .collect();
 
-        file.write_to_stdin(FILENAME)?;
-        file.write_to_stdin("\n")?;
+    let output: ScheduleRawResult = Python::eval_with_gil(script.script(), "run_algorithm", data)?;
 
-        for task in &tasks {
-            file.write_to_file(
-                FILENAME.to_string(),
-                &format!(
-                    "{} {} {}",
-                    task.start_time, task.grinding_time, task.lacquering_time
-                ),
-            )?;
-        }
+    let grinding = parse_schedule_infos(output.result_1)?;
+    let lacquering = parse_schedule_infos(output.result_2)?;
 
-        PyModule::from_code(py, script.script(), MODULE_FILENAME, MODULE_NAME)?;
-
-        let module = py.import(MODULE_NAME)?;
-
-        let grinding = parse_schedule_infos(module.getattr(script.first_result())?.extract()?)?;
-        let lacquering = parse_schedule_infos(module.getattr(script.second_result())?.extract()?)?;
-
-        module.setattr("list", list)?;
-
-        Ok(Schedule {
-            grinding,
-            lacquering,
-        })
-    })?)
+    Ok(Schedule {
+        grinding,
+        lacquering,
+    })
 }
