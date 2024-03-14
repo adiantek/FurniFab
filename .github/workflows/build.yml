@@ -1,0 +1,97 @@
+name: Build and deploy application
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - published
+
+env:
+  CARGO_TERM_COLOR: always
+  TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+  TAURI_KEY_PASSWORD: ''
+  BUILD_TYPE: ${{ github.event.release && 'release' || 'snapshot' }}
+  VERSION_TAG: ${{ github.event.release && github.event.release.tag_name || github.run_number }}
+  RELEASE_NOTES: ${{ github.event.release && github.event.release.body || github.event.pull_request && github.event.pull_request.title || github.event.head_commit.message }}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { platform: macos-latest, triple: aarch64-apple-darwin }
+          - { platform: windows-latest, triple: aarch64-pc-windows-msvc }
+          # - { platform: ubuntu-latest, triple: aarch64-unknown-linux-gnu }
+          - { platform: macos-latest, triple: x86_64-apple-darwin }
+          - { platform: windows-latest, triple: x86_64-pc-windows-msvc }
+          - { platform: ubuntu-latest, triple: x86_64-unknown-linux-gnu }
+    runs-on: ${{ matrix.target.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.target.platform == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install libwebkit2gtk-4.0-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Prepare rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target.triple }}
+
+      - name: Cache rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: Prepare node.js
+        uses: actions/setup-node@v4
+
+      - name: Install tauri-cli
+        run: cargo install tauri-cli
+
+      - name: Install node dependencies
+        run: npm ci
+
+      - name: Build installer and update
+        env:
+          TARGET_TRIPLE: ${{ matrix.target.triple }}
+        run: python script/build.py
+
+      - name: Upload artifacts
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target.triple }}
+          path: output
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: output
+          merge-multiple: true
+
+      - name: Create release
+        run: python script/deploy.py
+
+      - name: Upload release
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: output
+          target-folder: ${{ env.BUILD_TYPE }}
+          clean: false
+          single-commit: true
