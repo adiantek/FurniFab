@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FlowScript, scheduleFlow, type FlowTask } from '@/api'
+import { FlowScript, scheduleFlow, type FlowTask, type FlowScheduleInfo } from '@/api'
 import type { ScheduledTask } from '@/components/ScheduleComponent.vue'
 import { useBusinessTasks, type BusinessTask } from '@/composables/TaskComposable'
 import { plusMinutes } from '@/utils'
@@ -72,7 +72,27 @@ function getStartingTime(minDate: Date, task: BusinessTask): number {
   )
 }
 
-const key = ref(0);
+function mergeTasks(tasks: FlowScheduleInfo[][]): FlowScheduleInfo[][] {
+  return tasks.map((task) => {
+    const newTask = []
+    let previous = undefined
+
+    task.sort((first, second) => first.start_time - second.start_time)
+    for (let time of task) {
+      if (previous !== undefined && previous.end_time === time.start_time) {
+        previous.end_time = time.end_time
+      } else {
+        newTask.push(time)
+        previous = time
+      }
+    }
+
+    return newTask
+  })
+}
+
+const key = ref(0)
+
 async function schedule() {
   const tasks = [...readyTasks.value]
 
@@ -89,12 +109,9 @@ async function schedule() {
     lacquering_time: task.flowInfo.lacqueringProcessTime
   }))
 
-  console.log(apiTasks)
-
   const schedule = await scheduleFlow(apiTasks, script.value)
-  console.log(schedule)
 
-  schedule.grinding.forEach((times, index) => {
+  mergeTasks(schedule.grinding).forEach((times, index) => {
     const task = tasks[index]
     task.flowInfo.grinding = []
     for (let time of times) {
@@ -122,7 +139,7 @@ async function schedule() {
     }
   })
 
-  schedule.lacquering.forEach((times, index) => {
+  mergeTasks(schedule.lacquering).forEach((times, index) => {
     const task = tasks[index]
     task.flowInfo.lacquering = []
     for (let time of times) {
