@@ -13,10 +13,7 @@ use self::bindings::*;
 
 mod bindings;
 
-static API_STR: &CStr = match CStr::from_bytes_with_nul(b"__api__\0") {
-    Ok(value) => value,
-    Err(_) => panic!("invalid CStr"),
-};
+static API_STR: &CStr = c"__api__";
 static PYTHON: OnceLock<Python> = OnceLock::new();
 
 /// Represents global python state.
