@@ -1,16 +1,14 @@
 import sys
 import copy
-
+import time as clock
+### wrzucić na githuba
 the_best = sys.float_info.max
 time_the_best = []
 time2_the_best = []
-order_the_best = []
-result = {}
-result2 = {}
-
-
-def add_to_the_first_machine(x, time):
-    if len(time) == 0:
+order_the_best=[]
+stop_recursion = False
+def add_to_the_first_machine(x,time):
+    if len(time)==0:
         time.append(x[0])
     elif x[0] > time[-1]:
         time.append(x[0])
@@ -18,12 +16,11 @@ def add_to_the_first_machine(x, time):
         time.append(time[-1])
     return time
 
-
 def add_to_the_second_machine(x, time, time2):
-    if len(time2) == 1:
-        time2.pop(-1)
+    if len(time2) == 0:
+        #time2.pop(-1)
         time2.append(time[-1])
-        time2.append(time2[-1] + x[2])
+        time2.append(time2[-1]+x[2])
     else:
         if time2[-1] > time[-1]:
             time2.append(time2[-1])
@@ -33,16 +30,14 @@ def add_to_the_second_machine(x, time, time2):
             time2.append(time[-1] + x[2])
     return time2
 
-
-def update_parameters(time2, time, order):
-    global the_best, order_the_best, time_the_best, time2_the_best
+def update_parameters(time2,time,order):
+    global the_best,order_the_best, time_the_best, time2_the_best
     the_best = time2[-1]
     order_the_best = order.copy()
     time_the_best = time.copy()
     time2_the_best = time2.copy()
 
-
-def do_whole_task(time, tasks, updated_tasks, x, sorted_data, time2, order, index, n):
+def do_whole_task(time,tasks,updated_tasks, x, sorted_data, time2, order, index, n, timeout_seconds):
     time.append(time[-1] + x[1])
     current_task_index = sorted_data[x[0]].index(x)
     sorted_data[x[0]].pop(current_task_index)
@@ -50,18 +45,16 @@ def do_whole_task(time, tasks, updated_tasks, x, sorted_data, time2, order, inde
     time2 = add_to_the_second_machine(x, time.copy(), time2.copy())
     if len(sorted_data[x[0]]) == 0:
         del sorted_data[x[0]]
-    filtered_tasks = [t for t in updated_tasks_copy if t[0] < time[-1] and t[
-        1] > 0]  ### następnie zadanie trzeba wybrać spośród poprzednich, nieskończonych zadań
+    filtered_tasks = [t for t in updated_tasks_copy if t[0] < time[-1] and t[1] > 0] ### następnie zadanie trzeba wybrać spośród poprzednich, nieskończonych zadań
     if len(filtered_tasks) > 0:
         for f in filtered_tasks:
-            BB(f, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy, n)
-    else:  ### jeśli nie ma poprzednich nieskończonych zadań, bierzemy następne zadanie, które dopiero przyjdzie
+            BB(f, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy, n, timeout_seconds)
+    else: ### jeśli nie ma poprzednich nieskończonych zadań, bierzemy następne zadanie, które dopiero przyjdzie
         for i in range(len((sorted_data[tasks[index]]))):
             next_task = sorted_data[tasks[index]][i]
-            BB(next_task, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy, n)
+            BB(next_task, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy, n, timeout_seconds)
 
-
-def abort_task(time, tasks, updated_tasks, x, sorted_data, time2, order, index):
+def abort_task(time,tasks,updated_tasks, x, sorted_data, time2, order, index, timeout_seconds):
     t = tasks[index] - time[-1]  ### wyliczanie ile czasu obecne zadanie będzie wykonywane zanim pojawi się następne
     time.append(time[-1] + t)
     updated_tasks_copy = [z if z[3] != x[3] else z[:1] + (z[1] - t,) + z[2:] for z in updated_tasks]
@@ -71,37 +64,36 @@ def abort_task(time, tasks, updated_tasks, x, sorted_data, time2, order, index):
     sorted_data[x[0]][current_task_index] = x
     for i in range(len((sorted_data[tasks[index]]))):
         next_task = sorted_data[tasks[index]][i]
-        BB(next_task, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy)
-    BB(x, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(),
-       updated_tasks_copy)  #### jednak nie przerywamy zadania
+        BB(next_task, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy , timeout_seconds = timeout_seconds)
 
-
+    BB(x, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy,  timeout_seconds = timeout_seconds) #### jednak nie przerywamy zadania
 ### n to parametr określający czy będą jeszcze napływać nowe zadania
-def BB(x, sorted_data, time, time2, order, updated_tasks, n=True):
+def BB(x,sorted_data, time, time2, order, updated_tasks, n = True, timeout_seconds = None):
     global the_best
     global order_the_best
     global time_the_best
     global time2_the_best
-    # print("-----------------------")
-    # print("x",x)
-    # print("time",time)
-    # print("time2",time2)
-    # print("order",order)
-    # print("sorted_data",sorted_data)
-    # print("updated",updated_tasks)
-    # print("next_task",next_task)
-    order.append(x[3])
-    time = add_to_the_first_machine(x, time.copy())
-    if len(updated_tasks) == 1 and updated_tasks[0] == x:  ### zostało już tylko jedno zadanie do wykonania
-        time.append(time[-1] + x[1])
-        time2 = add_to_the_second_machine(x, time.copy(), time2.copy())
-        if time2[-1] < the_best:
-            update_parameters(time2.copy(), time.copy(), order)
+    global start_time
+    global stop_recursion
+   
+    if stop_recursion:
         return
-    if time2[-1] < the_best:
+    order.append(x[3])
+
+    time = add_to_the_first_machine(x, time.copy())
+    if len(updated_tasks)==1 and updated_tasks[0]==x: ### zostało już tylko jedno zadanie do wykonania
+        time.append(time[-1]+x[1])
+        time2 = add_to_the_second_machine(x, time.copy(), time2.copy())
+
+        if time2[-1]<the_best:
+            update_parameters(time2.copy(), time.copy(),order)
+        if timeout_seconds != None and clock.time() - start_time > timeout_seconds:
+            stop_recursion = True
+        return
+    if len(time2) == 0 or time2[-1] < the_best:
         tasks = list(sorted_data.keys())
         next_task = None
-        for element in tasks:  ### ustalenie indeksu następnego zadania, jest to kluczowe w celu sprawdzenia jego czasu gotowości
+        for element in tasks: ### ustalenie indeksu następnego zadania, jest to kluczowe w celu sprawdzenia jego czasu gotowości
             if element > time[-1]:
                 next_task = element
                 break
@@ -110,19 +102,17 @@ def BB(x, sorted_data, time, time2, order, updated_tasks, n=True):
         else:
             index = None
         if index and n == True:
-            if tasks[index] < time[-1] + x[1]:  ### trzeba uwzględnić fakt, że zadanie może zostać przerwane
-                abort_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(),
-                           order.copy(), index)
-            else:  ### zadanie wykona się w całości, nie przybędzie w tym czasie żadne nowe zadanie
-                do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data),
-                              time2.copy(), order.copy(), index, n)
-        elif index == None and n == True:  #### ostatnie zadanie na liście, nie będą przychodzić już następne zadania
-            n = False
-            do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(),
-                          order.copy(), index, n)
-        else:  ### poruszamy się po poprzednich nieskończonych zadaniach
-            do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(),
-                          order.copy(), index, n)
+            if tasks[index] < time[-1] + x[1]: ### trzeba uwzględnić fakt, że zadanie może zostać przerwane
+                abort_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(), order.copy(), index, timeout_seconds = timeout_seconds)
+            else: ### zadanie wykona się w całości, nie przybędzie w tym czasie żadne nowe zadanie
+                do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(), order.copy(), index, n, timeout_seconds = timeout_seconds)
+        elif index == None and n == True: #### ostatnie zadanie na liście, nie będą przychodzić już następne zadania
+            n=False
+            do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(), order.copy(), index, n, timeout_seconds = timeout_seconds)
+        else: ### poruszamy się po poprzednich nieskończonych zadaniach
+            do_whole_task(time.copy(), tasks.copy(), updated_tasks.copy(), x, copy.deepcopy(sorted_data), time2.copy(), order.copy(), index, n, timeout_seconds = timeout_seconds)
+
+
 
 
 def prepare_data():
@@ -177,7 +167,7 @@ def run_algorithm(input_data):
 
     for i in range(len(sorted_data[list(sorted_data.keys())[0]])):
         for j in range(len(sorted_data[list(sorted_data.keys())[1]])):
-            BB(sorted_data[list(sorted_data.keys())[0]][i], copy.deepcopy(sorted_data), [], [1000], [], sorted_tasks)
+            BB(sorted_data[list(sorted_data.keys())[0]][i], copy.deepcopy(sorted_data), [], [], [], sorted_tasks)
     prepare_data()
     res = {}
     res['result_1'] = result
@@ -207,7 +197,7 @@ if __name__ == "__main__":
     
     for i in range(len(sorted_data[list(sorted_data.keys())[0]])):
         for j in range(len(sorted_data[list(sorted_data.keys())[1]])):
-            BB(sorted_data[list(sorted_data.keys())[0]][i], copy.deepcopy(sorted_data), [], [1000], [], sorted_tasks)
+            BB(sorted_data[list(sorted_data.keys())[0]][i], copy.deepcopy(sorted_data), [], [], [], sorted_tasks)
     prepare_data()
     print("----------------------")
     print(the_best)
