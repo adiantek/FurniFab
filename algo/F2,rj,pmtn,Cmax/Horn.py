@@ -13,11 +13,15 @@ def add_to_schedule(task, start, duration):
     schedule[task_id].append([start, start + duration])
 
 
+
 def add_to_schedule2(task, start, duration):
     global t_second_machine
     global schedule2
     task_id = task[3]
-    schedule2[task_id].append([t_second_machine, t_second_machine + duration])
+    if t_second_machine == 0:
+        schedule2[task_id].append([start, t_second_machine + duration])
+    else:
+        schedule2[task_id].append([t_second_machine, t_second_machine + duration])
     if len(schedule2)==0 or t_second_machine < start:
         t_second_machine = start + duration
     else:
@@ -44,19 +48,24 @@ def min_t1(tasks):
     min_t = min(tasks, key=lambda x: x[1])
 
     return min_t
-def max_t2(tasks):
+def max_t1(tasks):
     max_t = max(tasks, key=lambda x: x[1])
 
     return max_t
+def max_t2(tasks):
+    max_t = max(tasks, key=lambda x: x[2])
 
+    return max_t
 def min_t1DIVt2(tasks):
     min_t = min(tasks, key=lambda x: x[1]/x[2])
+
     return min_t
 
-def Horn(J):
 
-    t1 = min(task[0] for task in J)
+def Horn(J):
     global t_second_machine
+    t1 = min(task[0] for task in J)
+
     A = set()
     while J or A:
 
@@ -71,18 +80,18 @@ def Horn(J):
 
 
         if A:
-            task_with_min_d =JohnsonRule(A)
-            l = min(task_with_min_d[1], t2 - t1)
-            add_to_schedule(task_with_min_d, t1, l)
+            task = JohnsonRule(A)
+            l = min(task[1], t2 - t1)
+            add_to_schedule(task, t1, l)
 
 
-            if task_with_min_d[1] <= l:
-                A.remove(task_with_min_d)
+            if task[1] <= l:
+                A.remove(task)
             else:
 
-                A = {(r, t - l, d, n) if n == task_with_min_d[3] else (r, t, d, n) for (r, t, d, n) in A}
-            if task_with_min_d[1]==l:
-                add_to_schedule2(task_with_min_d, l+t1, task_with_min_d[2])
+                A = {(r, t - l, d, n) if n == task[3] else (r, t, d, n) for (r, t, d, n) in A}
+            if task[1]==l:
+                add_to_schedule2(task, l+t1, task[2])
             t1 += l
         else:
             t1 = t2
