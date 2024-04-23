@@ -8,7 +8,8 @@ export interface CommandOutput {
 
 export enum ConflictAlgorithm {
   List = 'List',
-  VNS = 'VNS'
+  VNS = 'VNS',
+  Tresoldi = 'Tresoldi'
 }
 
 export interface ConflictTask {

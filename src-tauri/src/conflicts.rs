@@ -6,6 +6,7 @@ use serde::Deserialize;
 pub enum Algorithm {
     List,
     VNS,
+    Tresoldi,
 }
 
 impl Scheduler for Algorithm {
@@ -13,6 +14,7 @@ impl Scheduler for Algorithm {
         match self {
             Algorithm::List => schedulers::list_algorithm(instance),
             Algorithm::VNS => schedulers::vns(instance),
+            Algorithm::Tresoldi => schedulers::tresoldi(instance),
         }
     }
 }
