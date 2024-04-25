@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { exportData, importData, load } from '@/composables/TaskComposable'
+
 document.documentElement.setAttribute('data-bs-theme', 'dark')
+
+load()
 </script>
 
 <template>
@@ -21,6 +25,12 @@ document.documentElement.setAttribute('data-bs-theme', 'dark')
         <router-link to="/demo" class="nav-link" active-class="active">Demo</router-link>
       </div>
       <CreateBusinessTaskButtonComponent />
+      <div>
+        <LoadingButton :on-click="importData">Import</LoadingButton>
+      </div>
+      <div>
+        <LoadingButton :on-click="exportData">Eksport</LoadingButton>
+      </div>
     </nav>
     <div
       class="w-100 d-flex flex-column align-items-center p-4 m-auto"

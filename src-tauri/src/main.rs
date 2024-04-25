@@ -6,6 +6,7 @@ use tauri::api::process::{Command, CommandEvent};
 use tauri::{AppHandle, RunEvent};
 
 use app::conflicts::*;
+use app::data::*;
 use app::flow::*;
 use app::python3api::Python;
 
@@ -60,7 +61,11 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             run_resource,
             run_scheduling_conflicts,
-            run_flow
+            run_flow,
+            import,
+            export,
+            load_data,
+            save_data,
         ])
         .setup(|app| Python::initialize(app.handle()))
         .build(tauri::generate_context!())

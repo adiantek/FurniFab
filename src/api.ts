@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api'
+import type { BusinessTask } from '@/composables/TaskComposable'
 
 export interface CommandOutput {
   stdout: string
@@ -74,4 +75,20 @@ export async function scheduleConflicts(
 
 export function scheduleFlow(tasks: FlowTask[], script: FlowScript): Promise<FlowSchedule> {
   return invoke('run_flow', { tasks, script })
+}
+
+export function exportApi(data: BusinessTask[]): Promise<void> {
+  return invoke('export', { data: JSON.stringify(data) })
+}
+
+export async function importApi(): Promise<BusinessTask[]> {
+  return JSON.parse(await invoke('import'))
+}
+
+export function saveApi(data: BusinessTask[]): Promise<void> {
+  return invoke('save_data', { data: JSON.stringify(data) })
+}
+
+export async function loadApi(): Promise<BusinessTask[]> {
+  return JSON.parse(await invoke('load_data'))
 }
