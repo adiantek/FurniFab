@@ -81,8 +81,20 @@ export function exportApi(data: BusinessTask[]): Promise<void> {
   return invoke('export', { data: JSON.stringify(data) })
 }
 
+function parseDates(task: BusinessTask): BusinessTask {
+  if (task.cuttingInfo.startingTime) {
+    task.cuttingInfo.startingTime = new Date(task.cuttingInfo.startingTime)
+  }
+  const flow = task.flowInfo
+  if (flow.grinding && flow.lacquering) {
+    flow.grinding = flow.grinding.map((value) => [new Date(value[0]), value[1]])
+    flow.lacquering = flow.lacquering.map((value) => [new Date(value[0]), value[1]])
+  }
+  return task
+}
+
 export async function importApi(): Promise<BusinessTask[]> {
-  return JSON.parse(await invoke('import'))
+  return JSON.parse(await invoke('import')).map(parseDates)
 }
 
 export function saveApi(data: BusinessTask[]): Promise<void> {
@@ -90,5 +102,5 @@ export function saveApi(data: BusinessTask[]): Promise<void> {
 }
 
 export async function loadApi(): Promise<BusinessTask[]> {
-  return JSON.parse(await invoke('load_data'))
+  return JSON.parse(await invoke('load_data')).map(parseDates)
 }

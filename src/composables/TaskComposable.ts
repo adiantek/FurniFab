@@ -27,7 +27,7 @@ const businessTasks = ref<BusinessTask[]>([])
 
 export const nextTaskId = ref<number>(0)
 
-watch(businessTasks, save)
+watch(businessTasks, save, { deep: true })
 
 export function useBusinessTasks(): Ref<BusinessTask[]> {
   return businessTasks
