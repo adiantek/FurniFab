@@ -101,7 +101,7 @@ def run_algorithm(input_data):
     k = 1
     tasks = []
     for numbers in input_data:
-        element = tuple(map(int, numbers.split())) + (k,)
+        element = tuple(numbers) + (k,)
         tasks.append(element)
         schedule[k] = []
         schedule2[k] = []
