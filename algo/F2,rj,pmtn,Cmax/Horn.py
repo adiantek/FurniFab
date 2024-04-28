@@ -96,8 +96,25 @@ def Horn(J):
         else:
             t1 = t2
 
-# Wynik
+def run_algorithm(input_data):
+    global schedule, schedule2
+    k = 1
+    tasks = []
+    for numbers in input_data:
+        element = tuple(map(int, numbers.split())) + (k,)
+        tasks.append(element)
+        schedule[k] = []
+        schedule2[k] = []
+        k=k+1
+    tasks.sort(key=lambda x: x[0])
 
+    J = set(tasks)
+    Horn(J)
+    res = {}
+    res['result_1'] = schedule
+    res['result_2'] = schedule2
+    return res
+# Wynik
 print("Nazwa pliku:")
 file_name = input()
 k=1
@@ -109,6 +126,7 @@ with open(file_name, 'r') as file:
         schedule[k] = []
         schedule2[k] = []
         k=k+1
+
 tasks.sort(key=lambda x: x[0])
 
 J = set(tasks)
