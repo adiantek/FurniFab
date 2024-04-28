@@ -45,7 +45,7 @@ def do_whole_task(time,tasks,updated_tasks, x, sorted_data, time2, order, index,
     time2 = add_to_the_second_machine(x, time.copy(), time2.copy())
     if len(sorted_data[x[0]]) == 0:
         del sorted_data[x[0]]
-    filtered_tasks = [t for t in updated_tasks_copy if t[0] < time[-1] and t[1] > 0] ### następnie zadanie trzeba wybrać spośród poprzednich, nieskończonych zadań
+    filtered_tasks = [t for t in updated_tasks_copy if t[0] <= time[-1] and t[1] > 0] ### następnie zadanie trzeba wybrać spośród poprzednich, nieskończonych zadań
     if len(filtered_tasks) > 0:
         for f in filtered_tasks:
             BB(f, copy.deepcopy(sorted_data), time.copy(), time2.copy(), order.copy(), updated_tasks_copy, n, timeout_seconds)
