@@ -199,18 +199,18 @@ def run_algorithm(input_data):
     res['result_1'] = schedule
     res['result_2'] = schedule2
     return res
-
-tasks=[]
-k=1
-print("Nazwa pliku:")
-file_name = input()
-r = []
-with open(file_name, 'r') as file:
-    for numbers in file:
-        r.append(numbers)
-        element = tuple(map(int, numbers.split())) + (k,)
-        tasks.append(element)
-        schedule[k] = []
-        schedule2[k] = []
-        k = k + 1
-print(run_algorithm(r))
+if __name__ == "__main__":
+    tasks=[]
+    k=1
+    print("Nazwa pliku:")
+    file_name = input()
+    r = []
+    with open(file_name, 'r') as file:
+        for numbers in file:
+            r.append(numbers)
+            element = tuple(map(int, numbers.split())) + (k,)
+            tasks.append(element)
+            schedule[k] = []
+            schedule2[k] = []
+            k = k + 1
+    print(run_algorithm(r))
