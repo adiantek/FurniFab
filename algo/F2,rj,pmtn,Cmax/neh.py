@@ -91,7 +91,7 @@ def run_algorithm(input_data):
     data = []
     k=1
     for numbers in input_data:
-        element = tuple(map(int, numbers.split())) + (k,) #tuple(numbers) + (k,) #
+        element = tuple(numbers) + (k,)
         data.append(element)
         k=k+1
     sorted_task =  sorted(data, key=lambda x: x[1]+x[2], reverse=True)
@@ -101,23 +101,24 @@ def run_algorithm(input_data):
     res['result_1'] = schedule
     res['result_2'] = schedule2
     return res
-tasks=[]
-k=1
-print("Nazwa pliku:")
-file_name = input()
-r = []
-with open(file_name, 'r') as file:
-    for numbers in file:
-        element = tuple(map(int, numbers.split())) + (k,)
-        r.append(numbers)
-        tasks.append(element)
-        schedule[k] = []
-        schedule2[k] = []
-        k = k + 1
-# sorted_task =  sorted(tasks, key=lambda x: x[1]+x[2], reverse=True)
-# list = NEH(sorted_task)
-# print(C_max(list))
-# Horn(set(sorted_task), list)
-# print(schedule)
-# print(schedule2)
-print(run_algorithm(r))
+if __name__ == '__main__':
+    tasks=[]
+    k=1
+    print("Nazwa pliku:")
+    file_name = input()
+    r = []
+    with open(file_name, 'r') as file:
+        for numbers in file:
+            element = tuple(map(int, numbers.split())) + (k,)
+            r.append(numbers)
+            tasks.append(element)
+            schedule[k] = []
+            schedule2[k] = []
+            k = k + 1
+    # sorted_task =  sorted(tasks, key=lambda x: x[1]+x[2], reverse=True)
+    # list = NEH(sorted_task)
+    # print(C_max(list))
+    # Horn(set(sorted_task), list)
+    # print(schedule)
+    # print(schedule2)
+#print(run_algorithm(r))
