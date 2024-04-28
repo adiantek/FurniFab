@@ -192,6 +192,8 @@ def run_algorithm(input_data):
     for numbers in input_data:
         element = tuple(numbers) + (k,) #tuple(map(int, numbers.split())) + (k,)
         data.append(element)
+        schedule[k] = []
+        schedule2[k] = []
         k=k+1
     the_best_order = MainLoop(data)
     Horn(set(the_best_order), data)
@@ -199,18 +201,18 @@ def run_algorithm(input_data):
     res['result_1'] = schedule
     res['result_2'] = schedule2
     return res
-if __name__ == "__main__":
-    tasks=[]
-    k=1
-    print("Nazwa pliku:")
-    file_name = input()
-    r = []
-    with open(file_name, 'r') as file:
-        for numbers in file:
-            r.append(numbers)
-            element = tuple(map(int, numbers.split())) + (k,)
-            tasks.append(element)
-            schedule[k] = []
-            schedule2[k] = []
-            k = k + 1
-    print(run_algorithm(r))
+# if __name__ == "__main__":
+#     tasks=[]
+#     k=1
+#     print("Nazwa pliku:")
+#     file_name = input()
+#     r = []
+#     with open(file_name, 'r') as file:
+#         for numbers in file:
+#             r.append(numbers)
+#             element = tuple(map(int, numbers.split())) + (k,)
+#             tasks.append(element)
+#             schedule[k] = []
+#             schedule2[k] = []
+#             k = k + 1
+#     print(run_algorithm(r))

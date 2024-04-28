@@ -1,4 +1,3 @@
-
 A = set()
 schedule = {}
 schedule2 = {}
@@ -93,6 +92,8 @@ def run_algorithm(input_data):
     for numbers in input_data:
         element = tuple(numbers) + (k,)
         data.append(element)
+        schedule[k] = []
+        schedule2[k] = []
         k=k+1
     sorted_task =  sorted(data, key=lambda x: x[1]+x[2], reverse=True)
     list = NEH(sorted_task)
