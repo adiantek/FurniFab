@@ -114,22 +114,22 @@ def run_algorithm(input_data):
     res['result_1'] = schedule
     res['result_2'] = schedule2
     return res
-# Wynik
-print("Nazwa pliku:")
-file_name = input()
-k=1
-tasks = []
-with open(file_name, 'r') as file:
-    for numbers in file:
-        element = tuple(map(int, numbers.split())) + (k,)
-        tasks.append(element)
-        schedule[k] = []
-        schedule2[k] = []
-        k=k+1
-
-tasks.sort(key=lambda x: x[0])
-
-J = set(tasks)
-Horn(J)
-print(schedule)
-print(schedule2)
+if __name__ == '__main__':
+    print("Nazwa pliku:")
+    file_name = input()
+    k=1
+    tasks = []
+    with open(file_name, 'r') as file:
+        for numbers in file:
+            element = tuple(map(int, numbers.split())) + (k,)
+            tasks.append(element)
+            schedule[k] = []
+            schedule2[k] = []
+            k=k+1
+    
+    tasks.sort(key=lambda x: x[0])
+    
+    J = set(tasks)
+    Horn(J)
+    print(schedule)
+    print(schedule2)
