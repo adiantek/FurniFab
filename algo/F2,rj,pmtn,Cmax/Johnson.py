@@ -85,7 +85,12 @@ def MainLoop():
             break
 
 def run_algorithm(input_data):
-    global all_tasks, result, result2
+    global all_tasks, result, result2,time, time2
+    result = defaultdict(list)
+    result2 = defaultdict(list)
+    all_tasks=[]
+    time = []
+    time2=[]
     k=1
     for numbers in input_data:
         element = tuple(numbers) + (k,)
@@ -97,6 +102,7 @@ def run_algorithm(input_data):
     res = {}
     res['result_1'] = result
     res['result_2'] = result2
+    res['c_max'] = time2[-1]
     return res
 
 import json

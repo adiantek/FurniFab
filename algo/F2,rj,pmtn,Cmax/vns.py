@@ -5,24 +5,23 @@ A = set()
 t_second_machine = 0
 
 
+
 def add_to_schedule(task, start, duration):
-    global schedule
+    global schedule,t_second_machine
     task_id = task[3]
     schedule[task_id].append([start, start + duration])
+    if t_second_machine < start + duration:
+        t_second_machine = start+duration
+
 
 
 def add_to_schedule2(task, start, duration):
     global t_second_machine
     global schedule2
     task_id = task[3]
-    if t_second_machine == 0:
-        schedule2[task_id].append([start, t_second_machine + duration])
-    else:
-        schedule2[task_id].append([t_second_machine, t_second_machine + duration])
-    if len(schedule2)==0 or t_second_machine < start:
-        t_second_machine = start + duration
-    else:
-        t_second_machine = t_second_machine + duration
+
+    schedule2[task_id].append([t_second_machine, t_second_machine + duration])
+    t_second_machine = t_second_machine + duration
 def C_max(tasks):
     max_order = 0
     current_order=0
@@ -180,14 +179,18 @@ def MainLoop(tasks):
             tasks = x
         else:
             no_improvements +=1
-        if no_improvements == len(tasks)// 5:
+        if no_improvements == len(tasks):
             tasks = perturbation(the_best_order)
-        if no_improvements == len(tasks)//2:
+        if no_improvements == len(tasks)*2:
             break
     return the_best_order
 def run_algorithm(input_data):
-    global schedule, schedule2
+    global schedule, schedule2, A, t_second_machine
     data = []
+    schedule = {}
+    schedule2 = {}
+    A = set()
+    t_second_machine = 0
     k=1
     for numbers in input_data:
         element = tuple(numbers) + (k,) #tuple(map(int, numbers.split())) + (k,)
@@ -200,19 +203,20 @@ def run_algorithm(input_data):
     res = {}
     res['result_1'] = schedule
     res['result_2'] = schedule2
+    res['c_max'] = t_second_machine
     return res
-# if __name__ == "__main__":
-#     tasks=[]
-#     k=1
-#     print("Nazwa pliku:")
-#     file_name = input()
-#     r = []
-#     with open(file_name, 'r') as file:
-#         for numbers in file:
-#             r.append(numbers)
-#             element = tuple(map(int, numbers.split())) + (k,)
-#             tasks.append(element)
-#             schedule[k] = []
-#             schedule2[k] = []
-#             k = k + 1
-#     print(run_algorithm(r))
+if __name__ == "__main__":
+    tasks=[]
+    k=1
+    print("Nazwa pliku:")
+    file_name = input()
+    r = []
+    with open(file_name, 'r') as file:
+        for numbers in file:
+            r.append(numbers)
+            element = tuple(map(int, numbers.split())) + (k,)
+            tasks.append(element)
+            schedule[k] = []
+            schedule2[k] = []
+            k = k + 1
+    print(run_algorithm(r))
