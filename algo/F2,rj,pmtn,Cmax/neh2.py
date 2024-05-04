@@ -29,27 +29,27 @@ def C_max(tasks):
         max_order = max(max_order, current_order)
         max_order = max_order + tasks[i][2]
     return max_order
-def NEH(tasks):
+def NEH(tasks, new_task):
+    current_sol = []
     solution = []
-    for j in range(len(tasks)):
-        current_sol = []
-        for k in range(j+1):
-            permutation_k =  solution.copy()
-            permutation_k.insert(k, tasks[j])
-            current_sol.append(permutation_k)
-        the_best_len = None
-        for i in range(len(current_sol)):
-            len_order = C_max(current_sol[i])
-            if the_best_len == None or len_order<the_best_len:
-                the_best_len = len_order
-                solution = current_sol[i]
+    for k in range(len(tasks)+1):
+        permutation_k =  tasks.copy()
+        permutation_k.insert(k, new_task)
+        current_sol.append(permutation_k)
+    the_best_len = None
+    for i in range(len(current_sol)):
+        len_order = C_max(current_sol[i])
+        if the_best_len == None or len_order<the_best_len:
+            the_best_len = len_order
+            solution = current_sol[i]
     return solution
 def currentTask(min_elements,list):
     for l in list:
         for m in min_elements:
             if m[3]==l[3]:
                 return m
-def Horn(J, list):
+def Horn(J):
+    order = []
     global t_second_machine
     t1 = min(task[0] for task in J)
 
@@ -67,7 +67,11 @@ def Horn(J, list):
 
 
         if A:
-            task =currentTask(A, list)#JohnsonRule(A)
+            for a in A:
+                if a not in order:
+                    order =NEH(order, a)#JohnsonRule(A)
+            task = order[0]
+            order.pop(0)
             l = min(task[1], t2 - t1)
             add_to_schedule(task, t1, l)
 
@@ -97,9 +101,7 @@ def run_algorithm(input_data):
         schedule[k] = []
         schedule2[k] = []
         k=k+1
-    sorted_task =  sorted(data, key=lambda x: x[1]+x[2], reverse=True)
-    list = NEH(sorted_task)
-    Horn(set(sorted_task), list)
+    Horn(set(data))
     res = {}
     res['result_1'] = schedule
     res['result_2'] = schedule2
@@ -119,10 +121,8 @@ if __name__ == '__main__':
             schedule[k] = []
             schedule2[k] = []
             k = k + 1
-    sorted_task =  sorted(tasks, key=lambda x: x[1]+x[2], reverse=True)
-    list = NEH(sorted_task)
-    print(C_max(list))
-    Horn(set(sorted_task), list)
+
+    Horn(set(tasks))
     print(schedule)
     print(schedule2)
 #print(run_algorithm(r))

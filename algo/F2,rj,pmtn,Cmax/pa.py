@@ -63,10 +63,11 @@ if __name__ == "__main__":
     with open(file_name, 'r') as file:
         for numbers in file:
             input_data.append(list(map(int, numbers.split())))
-    run_algorithm(input_data)
+    res = run_algorithm(input_data)
     print(order)
     print(time)
     print(time2)
+    print(res)
     with open('result_pa.txt', 'w') as file:
         # Iteracja przez słownik i zapisywanie kluczy i wartości
         file.write("Zadania na pierwszej maszynie: \n")
