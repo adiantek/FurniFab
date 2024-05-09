@@ -42,7 +42,8 @@ export enum FlowScript {
   Pa = 'Pa',
   Johnson = 'Johnson',
   Johnson2 = 'Johnson2',
-  BranchAndBound = 'BranchAndBound'
+  BranchAndBound = 'BranchAndBound',
+  Neh = 'Neh'
 }
 
 export interface FlowTask {

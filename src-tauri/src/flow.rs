@@ -9,6 +9,7 @@ const PA_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/pa.py");
 const JOHNSON_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/Johnson.py");
 const JOHNSON_2_SCRIPT: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/Johnson_ver2.py");
 const BRANCH_AND_BOUND: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/BB.py");
+const NEH: &str = include_str!("../../algo/F2,rj,pmtn,Cmax/neh2.py");
 
 #[derive(Debug, Deserialize)]
 pub enum Script {
@@ -16,6 +17,7 @@ pub enum Script {
     Johnson,
     Johnson2,
     BranchAndBound,
+    Neh,
 }
 
 impl Script {
@@ -25,6 +27,7 @@ impl Script {
             Script::Johnson => JOHNSON_SCRIPT,
             Script::Johnson2 => JOHNSON_2_SCRIPT,
             Script::BranchAndBound => BRANCH_AND_BOUND,
+            Script::Neh => NEH,
         }
     }
 }
