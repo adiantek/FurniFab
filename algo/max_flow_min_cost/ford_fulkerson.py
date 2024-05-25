@@ -1,20 +1,23 @@
-def read_input(file_name):
+def read_graph(file_name):
     file = open(file_name)
     f = file.readlines()
     graph = dict()
     list_of_edges = []
     nodes = [i + 1 for i in range(len(f))]
+
     for line in f:
         line_split = line.split()
         edges = dict()
         for i in range(1, len(line_split)):
             edge_split = line_split[i].split(':')
-            edges[int(edge_split[0])] = (int(edge_split[1]))
+            max_capacity_and_cost = edge_split[1].split(',')
+            edges[int(edge_split[0])] = [int(max_capacity_and_cost[0]), 0, int(max_capacity_and_cost[1])]
             list_of_edges.append((int((line_split[0])[:-1]), int(edge_split[0])))
         for i in range(1, len(nodes) + 1):
             if i not in edges.keys():
-                edges[i] = 0
+                edges[i] = [0, 0, 0]
         graph[int((line_split[0])[:-1])] = edges
+
     file.close()
     return graph, list_of_edges, nodes
 
@@ -28,7 +31,7 @@ def find_path(s, t, nodes, list_of_edges, graph):
         adjacent_nodes = [y for (x, y) in list_of_edges if x == current_node]
         availible_flow = graph[current_node]
         for adjacent_node in adjacent_nodes:
-            availible_flow_of_adjacent_node = availible_flow[adjacent_node]
+            availible_flow_of_adjacent_node = availible_flow[adjacent_node][0] - availible_flow[adjacent_node][1]
             if not visited_nodes[adjacent_node - 1] and availible_flow_of_adjacent_node > 0:
                 nodes_to_be_checked.append(adjacent_node)
                 visited_nodes[adjacent_node - 1] = 1
@@ -47,7 +50,7 @@ def ford_fulkerson(s, t, nodes, list_of_edges, graph):
         while current_node != s:
             parent = parents[current_node]
             availible_flow_of_parent = graph[parent]
-            availible_flow_to_current_node = availible_flow_of_parent[current_node]
+            availible_flow_to_current_node = availible_flow_of_parent[current_node][0] - availible_flow_of_parent[current_node][1]
             path_flow = min(path_flow, availible_flow_to_current_node)
             current_node = parent
         max_flow += path_flow
@@ -55,15 +58,15 @@ def ford_fulkerson(s, t, nodes, list_of_edges, graph):
         current_node = t
         while current_node != s:
             parent = parents[current_node]
-            graph[parent][current_node] -= path_flow
-            graph[current_node][parent] += path_flow
+            graph[parent][current_node][1] += path_flow
+            graph[current_node][parent][0] += path_flow
             current_node = parent
 
         parents = find_path(s, t, nodes, list_of_edges, graph)
     return max_flow
 
 if __name__ == '__main__':
-    graph, list_of_edges, nodes = read_input("file_mag.txt")
+    graph, list_of_edges, nodes = read_graph("file_negative_cycle_x1.txt")
     s = min(nodes)
     t = max(nodes)
     print(graph)
