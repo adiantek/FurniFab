@@ -5,7 +5,6 @@ import { binPacking, BinPackingAlgorithm, type Rect } from '@/api'
 const result = ref<Rect[] | undefined>()
 
 async function onButtonClick() {
-  console.log('start');
   result.value = await binPacking(
     { id: 1, w: 100, h: 100 },
     [
@@ -31,8 +30,6 @@ async function onButtonClick() {
     ],
     BinPackingAlgorithm.FFDH
   )
-  console.log('end');
-  console.log(result.value);
 }
 </script>
 
