@@ -111,6 +111,7 @@ export interface Rect {
   y?: number
   w: number
   h: number
+  color?: string
 }
 export function binPacking(bin: Bin, rects: Rect[], algorithm: BinPackingAlgorithm): Promise<Rect[]> {
   return invoke('run_bin_packing', { bin, rects, algorithm })
