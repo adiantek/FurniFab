@@ -26,33 +26,25 @@ impl<'a, 'b> Iterator for SwapSingleMachine<'a, 'b> {
     type Item = ScheduleBuilder<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.j >= self.schedule.machine_tasks_len(self.machine) {
-            self.i += 1;
-            self.j = self.i + 1;
-        }
+        while self.machine < self.schedule.machines_len() {
+            while self.i + 1 < self.schedule.machine_tasks_len(self.machine) {
+                if self.j < self.schedule.machine_tasks_len(self.machine) {
+                    let mut builder = self.schedule.clone();
 
-        while self.machine < self.schedule.machines_len()
-            && self.i >= self.schedule.machine_tasks_len(self.machine) - 1
-        {
+                    builder.reorganize_schedule(|machines, _| {
+                        machines[self.machine].swap(self.i, self.j);
+                        (vec![(self.machine, self.i)], vec![])
+                    });
+
+                    self.j += 1;
+
+                    return Some(builder);
+                }
+                self.i += 1;
+            }
             self.machine += 1;
-            self.i = 0;
-            self.j = 1;
         }
-
-        if self.machine >= self.schedule.machines_len() {
-            return None;
-        }
-
-        let mut builder = self.schedule.clone();
-
-        builder.reorganize_schedule(|machines, _| {
-            machines[self.machine].swap(self.i, self.j);
-            (vec![(self.machine, self.i)], vec![])
-        });
-
-        self.j += 1;
-
-        Some(builder)
+        None
     }
 }
 
@@ -78,31 +70,26 @@ impl<'a, 'b> Iterator for MoveSingleMachine<'a, 'b> {
     type Item = ScheduleBuilder<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.j >= self.schedule.machine_tasks_len(self.machine) {
-            self.i += 1;
-            self.j = 0;
-        }
+        while self.machine < self.schedule.machines_len() {
+            while self.i + 1 < self.schedule.machine_tasks_len(self.machine) {
+                if self.j < self.schedule.machine_tasks_len(self.machine) {
+                    let mut builder = self.schedule.clone();
 
-        if self.i >= self.schedule.machine_tasks_len(self.machine) {
+                    builder.reorganize_schedule(|machines, _| {
+                        let task = machines[self.machine].remove(self.i);
+                        machines[self.machine].insert(self.j, task);
+                        (vec![(self.machine, self.i.min(self.j))], vec![])
+                    });
+
+                    self.j += 1;
+
+                    return Some(builder);
+                }
+                self.i += 1;
+            }
             self.machine += 1;
-            self.i = 0;
         }
-
-        if self.machine >= self.schedule.machines_len() {
-            return None;
-        }
-
-        let mut builder = self.schedule.clone();
-
-        builder.reorganize_schedule(|machines, _| {
-            let task = machines[self.machine].remove(self.i);
-            machines[self.machine].insert(self.j, task);
-            (vec![(self.machine, self.i.min(self.j))], vec![])
-        });
-
-        self.j += 1;
-
-        Some(builder)
+        None
     }
 }
 
@@ -130,38 +117,31 @@ impl<'a, 'b> Iterator for SwapTwoMachines<'a, 'b> {
     type Item = ScheduleBuilder<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.j >= self.schedule.machine_tasks_len(self.second) {
-            self.i += 1;
-            self.j = 0;
-        }
+        while self.first + 1 < self.schedule.machines_len() {
+            while self.second < self.schedule.machines_len() {
+                while self.i < self.schedule.machine_tasks_len(self.first) {
+                    if self.j < self.schedule.machine_tasks_len(self.second) {
+                        let mut builder = self.schedule.clone();
 
-        if self.i >= self.schedule.machine_tasks_len(self.first) {
-            self.second += 1;
-            self.i = 0;
-        }
+                        builder.reorganize_schedule(|machines, _| {
+                            let value = machines[self.first][self.i];
+                            machines[self.first][self.i] = machines[self.second][self.j];
+                            machines[self.second][self.j] = value;
 
-        if self.second >= self.schedule.machines_len() {
+                            (vec![(self.first, self.i), (self.second, self.j)], vec![])
+                        });
+
+                        self.j += 1;
+
+                        return Some(builder);
+                    }
+                    self.i += 1;
+                }
+                self.second += 1;
+            }
             self.first += 1;
-            self.second = self.first + 1;
         }
-
-        if self.first >= self.schedule.machines_len() - 1 {
-            return None;
-        }
-
-        let mut builder = self.schedule.clone();
-
-        builder.reorganize_schedule(|machines, _| {
-            let value = machines[self.first][self.i];
-            machines[self.first][self.i] = machines[self.second][self.j];
-            machines[self.second][self.j] = value;
-
-            (vec![(self.first, self.i), (self.second, self.j)], vec![])
-        });
-
-        self.j += 1;
-
-        Some(builder)
+        None
     }
 }
 
@@ -189,37 +169,30 @@ impl<'a, 'b> Iterator for MoveTwoMachines<'a, 'b> {
     type Item = ScheduleBuilder<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.j > self.schedule.machine_tasks_len(self.second) {
-            self.i += 1;
-            self.j = 0;
-        }
+        while self.first + 1 < self.schedule.machines_len() {
+            while self.second < self.schedule.machines_len() {
+                while self.i < self.schedule.machine_tasks_len(self.first) {
+                    if self.j <= self.schedule.machine_tasks_len(self.second) {
+                        let mut builder = self.schedule.clone();
 
-        if self.i >= self.schedule.machine_tasks_len(self.first) {
-            self.second += 1;
-            self.i = 0;
-        }
+                        builder.reorganize_schedule(|machines, _| {
+                            let value = machines[self.first].remove(self.i);
+                            machines[self.second].insert(self.j, value);
 
-        if self.second >= self.schedule.machines_len() {
+                            (vec![(self.first, self.i), (self.second, self.j)], vec![])
+                        });
+
+                        self.j += 1;
+
+                        return Some(builder);
+                    }
+                    self.i += 1;
+                }
+                self.second += 1;
+            }
             self.first += 1;
-            self.second = self.first + 1;
         }
-
-        if self.first >= self.schedule.machines_len() - 1 {
-            return None;
-        }
-
-        let mut builder = self.schedule.clone();
-
-        builder.reorganize_schedule(|machines, _| {
-            let value = machines[self.first].remove(self.i);
-            machines[self.second].insert(self.j, value);
-
-            (vec![(self.first, self.i), (self.second, self.j)], vec![])
-        });
-
-        self.j += 1;
-
-        Some(builder)
+        None
     }
 }
 
@@ -245,34 +218,29 @@ impl<'a, 'b> Iterator for ReplaceWithTardy<'a, 'b> {
     type Item = ScheduleBuilder<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.j >= self.schedule.tardy_len() {
-            self.i += 1;
-            self.j = 0;
-        }
+        while self.machine < self.schedule.machines_len() {
+            while self.i < self.schedule.machine_tasks_len(self.machine) {
+                if self.j < self.schedule.tardy_len() {
+                    let mut builder = self.schedule.clone();
 
-        if self.i >= self.schedule.machine_tasks_len(self.machine) {
+                    builder.reorganize_schedule(|machines, tardy_tasks| {
+                        std::mem::swap(
+                            &mut machines[self.machine][self.i],
+                            &mut tardy_tasks[self.j],
+                        );
+
+                        (vec![(self.machine, self.i)], vec![tardy_tasks[self.j]])
+                    });
+
+                    self.j += 1;
+
+                    return Some(builder);
+                }
+                self.i += 1;
+            }
             self.machine += 1;
-            self.i = 0;
         }
-
-        if self.machine >= self.schedule.machines_len() || self.schedule.tardy_len() == 0 {
-            return None;
-        }
-
-        let mut builder = self.schedule.clone();
-
-        builder.reorganize_schedule(|machines, tardy_tasks| {
-            std::mem::swap(
-                &mut machines[self.machine][self.i],
-                &mut tardy_tasks[self.j],
-            );
-
-            (vec![(self.machine, self.i)], vec![tardy_tasks[self.j]])
-        });
-
-        self.j += 1;
-
-        Some(builder)
+        None
     }
 }
 
@@ -298,31 +266,26 @@ impl<'a, 'b> Iterator for AddTardy<'a, 'b> {
     type Item = ScheduleBuilder<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.j >= self.schedule.tardy_len() {
-            self.i += 1;
-            self.j = 0;
-        }
+        while self.machine < self.schedule.machines_len() {
+            while self.i <= self.schedule.machine_tasks_len(self.machine) {
+                if self.j < self.schedule.tardy_len() {
+                    let mut builder = self.schedule.clone();
 
-        if self.i > self.schedule.machine_tasks_len(self.machine) {
+                    builder.reorganize_schedule(|machines, tardy_tasks| {
+                        machines[self.machine].insert(self.i, tardy_tasks[self.j]);
+                        tardy_tasks.remove(self.j);
+
+                        (vec![(self.machine, self.i)], vec![])
+                    });
+
+                    self.j += 1;
+
+                    return Some(builder);
+                }
+                self.i += 1;
+            }
             self.machine += 1;
-            self.i = 0;
         }
-
-        if self.machine >= self.schedule.machines_len() || self.schedule.tardy_len() == 0 {
-            return None;
-        }
-
-        let mut builder = self.schedule.clone();
-
-        builder.reorganize_schedule(|machines, tardy_tasks| {
-            machines[self.machine].insert(self.i, tardy_tasks[self.j]);
-            tardy_tasks.remove(self.j);
-
-            (vec![(self.machine, self.i)], vec![])
-        });
-
-        self.j += 1;
-
-        Some(builder)
+        None
     }
 }
