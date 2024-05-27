@@ -46,3 +46,14 @@ pub fn list_algorithm(instance: &Instance) -> Schedule {
 
     schedule.into()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::schedulers::test_utils::run_test_files;
+
+    #[test]
+    fn test_list_algorithm() {
+        run_test_files(list_algorithm).expect("Error running tests")
+    }
+}

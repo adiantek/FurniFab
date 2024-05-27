@@ -1,9 +1,10 @@
-mod init;
-mod neighborhoods;
+use rand::Rng;
 
 use crate::util::ScheduleBuilder;
 use crate::{Instance, Schedule};
-use rand::Rng;
+
+mod init;
+mod neighborhoods;
 
 fn neighborhood_search(mut schedule: ScheduleBuilder) -> ScheduleBuilder {
     let factories = [
@@ -89,4 +90,15 @@ pub fn vns(instance: &Instance) -> Schedule {
     }
 
     schedule.into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::schedulers::test_utils::run_test_files;
+
+    #[test]
+    fn test_vns() {
+        run_test_files(vns).expect("Error running tests")
+    }
 }
