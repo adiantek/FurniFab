@@ -71,6 +71,49 @@ jobs:
           name: ${{ matrix.target.triple }}
           path: output
 
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install libwebkit2gtk-4.0-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install node dependencies
+        run: npm ci
+
+      - name: Install python dependencies
+        run: pip install simpful setuptools
+
+      - name: Test integration frontend
+        run: npm run test:unit
+
+      - name: Test integration backend
+        run: cargo test
+        working-directory: src-tauri
+
+      - name: Test max flow min cost algorithms
+        run: python -m unittest discover -p automatic_tests*.py
+        working-directory: algo/max_flow_min_cost
+
+#      - name: Test bin packing algorithms
+#        run: TODO
+#        working-directory: algo/bin_packing
+
+      - name: Test conflict algorithms
+        run: cargo test
+        working-directory: algo/scheduling_conflicts
+
+      - name: Test flow algorithms
+        continue-on-error: true
+        run: python -m unittest discover -p automatic_tests*.py
+        working-directory: algo/F2,rj,pmtn,Cmax
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
