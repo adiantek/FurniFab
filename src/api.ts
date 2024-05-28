@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api'
 import type { BusinessTask } from '@/composables/TaskComposable'
+import { useToast } from 'bootstrap-vue-next'
 
 export interface CommandOutput {
   stdout: string
@@ -63,23 +64,25 @@ export interface FlowSchedule {
 }
 
 export function runExecutable(exec: string, stdin: string): Promise<CommandOutput> {
-  return invoke('run_resource', { exec, stdin })
+  return invoke('run_resource', { exec, stdin }).catch(onError) as Promise<CommandOutput>
 }
 
 export async function scheduleConflicts(
   instance: Instance,
   algorithm: ConflictAlgorithm
 ): Promise<Schedule> {
-  const scheduleString = await invoke('run_scheduling_conflicts', { instance, algorithm })
+  const scheduleString = await invoke('run_scheduling_conflicts', { instance, algorithm }).catch(
+    onError
+  )
   return await JSON.parse(scheduleString as string)
 }
 
 export function scheduleFlow(tasks: FlowTask[], script: FlowScript): Promise<FlowSchedule> {
-  return invoke('run_flow', { tasks, script })
+  return invoke('run_flow', { tasks, script }).catch(onError) as Promise<FlowSchedule>
 }
 
 export function exportApi(data: BusinessTask[]): Promise<void> {
-  return invoke('export', { data: JSON.stringify(data) })
+  return invoke('export', { data: JSON.stringify(data) }).catch(onError) as Promise<void>
 }
 
 function parseDates(task: BusinessTask): BusinessTask {
@@ -95,13 +98,25 @@ function parseDates(task: BusinessTask): BusinessTask {
 }
 
 export async function importApi(): Promise<BusinessTask[]> {
-  return JSON.parse(await invoke('import')).map(parseDates)
+  return JSON.parse(await invoke('import'))
+    .map(parseDates)
+    .catch(onError) as Promise<BusinessTask[]>
 }
 
 export function saveApi(data: BusinessTask[]): Promise<void> {
-  return invoke('save_data', { data: JSON.stringify(data) })
+  return invoke('save_data', { data: JSON.stringify(data) }).catch(onError) as Promise<void>
 }
 
 export async function loadApi(): Promise<BusinessTask[]> {
-  return JSON.parse(await invoke('load_data')).map(parseDates)
+  return JSON.parse((await invoke('load_data').catch(onError)) as string).map(parseDates)
+}
+
+function onError(error: any) {
+  const { show } = useToast()
+  show?.(error.toString(), {
+    title: 'Błąd w przetwarzaniu',
+    value: 5000,
+    variant: 'danger',
+    pos: 'bottom-right'
+  })
 }

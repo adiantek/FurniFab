@@ -9,7 +9,7 @@ pub mod data;
 pub mod flow;
 pub mod python3api;
 
-#[derive(Clone, Debug, Eq, Error, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum Error {
     #[error("Error during serialization: {0}")]
     Serde(String),
@@ -19,6 +19,12 @@ pub enum Error {
     InvalidSchedule,
     #[error("Import / export error: {0}")]
     ImportExport(String),
+}
+
+impl Serialize for Error {
+    fn serialize<S: serde::ser::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(self.to_string().as_ref())
+    }
 }
 
 impl From<SerdeError> for Error {
