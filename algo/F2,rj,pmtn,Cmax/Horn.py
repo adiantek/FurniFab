@@ -1,5 +1,5 @@
 import random
-
+from memory_profiler import profile, memory_usage
 A = set()
 schedule = {}
 schedule2 = {}
@@ -26,16 +26,13 @@ def add_to_schedule2(task, start, duration):
 
 
 def JohnsonRule(tasks):
-    print("tasks")
-    print(tasks)
     A = [x for x in tasks if x[1] <= x[2]]
-    A.sort(key=lambda x: (x[1],x[2]))
+    A.sort(key=lambda x: x[1])
     B = []
     if len(A) == 0:
         B = [x for x in tasks if x[1] > x[2]]
         B.sort(key=lambda x: x[2], reverse=True)
     con_AB = A + B
-    print(con_AB)
     return con_AB[0]
 
 
@@ -71,7 +68,6 @@ def min_t1DIVt2(tasks):
 def assess_weight(tasks):
     max_w = max(tasks, key=lambda x: (-1 * x[1]) + x[2])
     return max_w
-
 def Horn(J):
     global t_second_machine
     t1 = min(task[0] for task in J)
@@ -88,27 +84,27 @@ def Horn(J):
             t2 = min(task[0] for task in J)
 
         if A:
-            task = assess_weight(A)
-            print(task)
-            print(A)
-            print("----------")
+            task = JohnsonRule(A)#assess_weight(A)
             l = min(task[1], t2 - t1)
             add_to_schedule(task, t1, l)
 
-            if task[1] <= l:
+            if task[1] == l:
                 A.remove(task)
+                add_to_schedule2(task, l + t1, task[2])
             else:
 
                 A = {(r, t - l, d, n) if n == task[3] else (r, t, d, n) for (r, t, d, n) in A}
-            if task[1] == l:
-                add_to_schedule2(task, l + t1, task[2])
+
             t1 += l
         else:
             t1 = t2
 
 
 def run_algorithm(input_data):
-    global schedule, schedule2
+    global schedule, schedule2, A, t_second_machine
+    schedule, schedule2 = {}, {}
+    t_second_machine = 0
+    A = set()
     k = 1
     tasks = []
     for numbers in input_data:
@@ -147,3 +143,4 @@ if __name__ == '__main__':
     Horn(J)
     print(schedule)
     print(schedule2)
+    print(t_second_machine)
