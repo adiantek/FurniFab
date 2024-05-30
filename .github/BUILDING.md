@@ -279,14 +279,15 @@ materials.
 
 It solves a flow shop for two machines scheduling problem (F2|rj, pmtn|Cmax) using custom implementation of:
 
-- Johnson's algorithm
-- Branch and bound algorithm
-- Horn's algorithm
-- Nawaz-Enscore-Ham algorithm
+- Algorithm based on the Johnson rule
+- Algorithm based on the branch and bound method
+- Algorithm based on the NEH heuristics
+- Algorithm based on the variable neighborhood search
 
-These algorithms are heuristic algorithms that are used to solve the problem in a reasonable time
+These algorithms are heuristic that are used to solve the problem in a reasonable time
 and may not always find the optimal solution.
-Furthermore, the algorithms are randomized and may produce different results each time they are run.
+Furthermore, the VNS algorithm is randomized and may produce different results each time they are run.
+In addition, algorithm based on the branch and bound method can be very slow for a large number of tasks.
 
 #### Prerequisites
 
