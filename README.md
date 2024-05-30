@@ -1,6 +1,8 @@
 # FurniFab
 
 ![build](https://github.com/adiantek/FurniFab/actions/workflows/build.yml/badge.svg)
+![build](https://github.com/adiantek/FurniFab/actions/workflows/eslint.yml/badge.svg)
+![build](https://github.com/adiantek/FurniFab/actions/workflows/rust-clippy.yml/badge.svg)
 
 FurniFab is a key tool for furniture manufacturers, enabling significant improvements in various stages of production through the use of advanced software. This technology guarantees higher quality and production efficiency, which would be unattainable if relying solely on manual labour. The software is specifically configured for each stage of production, resulting in increased throughput and better work outcomes. To achieve that result it uses various algorithms from the literature and original. This combination of algorithms produces results that are better than human-made results.
 
