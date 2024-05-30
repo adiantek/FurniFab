@@ -7,7 +7,7 @@ use tauri::AppHandle;
 
 use crate::Error;
 
-const FILENAME: &str = "resources/data.json";
+const FILENAME: &str = "data.json";
 
 #[tauri::command]
 pub async fn import() -> Result<Option<String>, Error> {
@@ -30,7 +30,7 @@ pub async fn save_data(handle: AppHandle, data: String) -> Result<(), Error> {
 }
 
 fn load_path(file: Option<PathBuf>) -> Result<Option<String>, Error> {
-    if let Some(file) = file {
+    if let Some(file) = file.filter(|path| path.exists()) {
         let mut data = String::new();
         File::open(file.as_path())?.read_to_string(&mut data)?;
         Ok(Some(data))
