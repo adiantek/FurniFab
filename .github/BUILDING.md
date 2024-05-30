@@ -45,7 +45,7 @@ Folder structure:
 
 Ensure you have the following installed:
 
-- Node >= 20.12
+- [Node](https://nodejs.org/) >= 20.12
 - NPM >= 8.1
 
 #### Running
@@ -90,7 +90,7 @@ We are also using Tauri updater to provide automatic updates for the application
 
 Ensure you have the following installed:
 
-- Rust >= 1.77
+- [Rust](https://www.rust-lang.org/) >= 1.77
 
 All below cargo commands (except `tauri` commands) should be run in `src-tauri` folder.
 Also, to build installers, you need Tauri CLI:
@@ -165,7 +165,7 @@ It solves a `minimum cost maximum flow problem` using custom implementation of:
 
 Ensure you have the following installed:
 
-- Python >= 3.10
+- [Python](https://www.python.org/) >= 3.10
 
 #### Running
 
@@ -215,7 +215,7 @@ TODO: Add Material management module tests description
 ### Cutting management module
 
 Cutting management module is a Rust library
-that is responsible for calculating optimal schedule for cutting of the materials.
+that is responsible for calculating schedule for cutting materials.
 
 #### Algorithms
 
@@ -225,7 +225,7 @@ It solves `The Capacitated Scheduling Problem with Conflict Jobs` (`P|conflict|Î
 - Variable neighborhood search algorithm
 - Heuristic algorithm
 
-These algorithms are heuristic algorithms that are used to solve the problem in a reasonable time
+These algorithms are heuristics that are used to solve the problem in a reasonable time
 and may not always find the optimal solution.
 Furthermore, the algorithms are randomized and may produce different results each time they are run.
 
@@ -233,7 +233,7 @@ Furthermore, the algorithms are randomized and may produce different results eac
 
 Ensure you have the following installed:
 
-- Rust >= 1.77
+- [Rust](https://www.rust-lang.org/) >= 1.77
 
 Following commands should be run in `algo/scheduling_conflicts` directory.
 
@@ -272,7 +272,7 @@ cargo test
 
 ### Assembly management module
 
-Assembly management module is a Python script that is responsible for calculating optimal schedule for assembly of the
+Assembly management module is a Python script that is responsible for calculating schedule for assembly of the
 materials.
 
 #### Algorithms
@@ -293,7 +293,7 @@ In addition, algorithm based on the branch and bound method can be very slow for
 
 Ensure you have the following installed:
 
-- Python >= 3.10
+- [Python](https://www.python.org/) >= 3.10
 
 #### Running
 
