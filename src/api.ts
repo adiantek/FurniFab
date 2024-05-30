@@ -98,7 +98,10 @@ function parseDates(task: BusinessTask): BusinessTask {
 }
 
 export async function importApi(): Promise<BusinessTask[]> {
-  return JSON.parse((await invoke('import').catch(onError)) as string).map(parseDates)
+  const tasks: BusinessTask[] | undefined = JSON.parse(
+    (await invoke('import').catch(onError)) as string
+  )
+  return tasks?.map(parseDates) || []
 }
 
 export function saveApi(data: BusinessTask[]): Promise<void> {

@@ -21,12 +21,21 @@ pub async fn export(data: String) -> Result<(), Error> {
 
 #[tauri::command]
 pub async fn load_data(handle: AppHandle) -> Result<Option<String>, Error> {
-    load_path(handle.path_resolver().resolve_resource(FILENAME))
+    load_path(get_path(&handle))
 }
 
 #[tauri::command]
 pub async fn save_data(handle: AppHandle, data: String) -> Result<(), Error> {
-    save_path(handle.path_resolver().resolve_resource(FILENAME), data)
+    save_path(get_path(&handle), data)
+}
+
+fn get_path(handle: &AppHandle) -> Option<PathBuf> {
+    handle.path_resolver().app_data_dir().and_then(|mut path| {
+        std::fs::create_dir_all(&path).ok().map(|_| {
+            path.push(FILENAME);
+            path
+        })
+    })
 }
 
 fn load_path(file: Option<PathBuf>) -> Result<Option<String>, Error> {
