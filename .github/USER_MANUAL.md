@@ -120,6 +120,7 @@ When setting the parameters for the scheduling algorithm,
 consider the data size — the number of tasks can affect the performance of the algorithm.
 
 **List** - This algorithm is fast but may not produce the best results.
+
 **VNS**, **Tresoldi** - These algorithms are slower but produce better results.
 
 ## Assembly
@@ -144,6 +145,7 @@ When setting the parameters for the scheduling algorithm,
 consider the data size — the number of tasks can affect the performance of the algorithm.
 
 **Pa, Johnson, Johnson2, Neh** - These algorithms are fast but may not produce the best results.
+
 **BB** - This algorithm is slower but produces optimal results.
 Not recommended for data with more than 20 tasks.
 
