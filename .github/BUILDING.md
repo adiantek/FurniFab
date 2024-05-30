@@ -155,7 +155,7 @@ Delivery module is a Python script that is responsible for calculating optimal d
 
 #### Algorithms
 
-It solves a `minimum cost flow problem` using custom implementation of:
+It solves a `minimum cost maximum flow problem` using custom implementation of:
 
 - Cycle canceling algorithm
 - Bellman-Ford algorithm
