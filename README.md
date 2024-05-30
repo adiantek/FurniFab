@@ -41,9 +41,9 @@ The user manual is available at [USER MANUAL](.github/USER_MANUAL.md).
 
 Ensure you have the following installed:
 
-- Python >= 3.10
-- Rust >= 1.77
-- Node >= 20.12
+- [Python](https://www.python.org/) >= 3.10
+- [Rust](https://www.rust-lang.org/) >= 1.77
+- [Node](https://nodejs.org/) >= 20.12
 - Latest Tauri CLI
 
 Tauri CLI can be installed with:
