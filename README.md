@@ -4,12 +4,19 @@
 ![build](https://github.com/adiantek/FurniFab/actions/workflows/eslint.yml/badge.svg)
 ![build](https://github.com/adiantek/FurniFab/actions/workflows/rust-clippy.yml/badge.svg)
 
-FurniFab is a key tool for furniture manufacturers, enabling significant improvements in various stages of production through the use of advanced software. This technology guarantees higher quality and production efficiency, which would be unattainable if relying solely on manual labour. The software is specifically configured for each stage of production, resulting in increased throughput and better work outcomes. To achieve that result it uses various algorithms from the literature and original. This combination of algorithms produces results that are better than human-made results.
+FurniFab is a key tool for furniture manufacturers,
+enabling significant improvements in various stages of production through the use of advanced software.
+This technology guarantees higher quality and production efficiency,
+which would be unattainable if relying solely on manual labor.
+The software is specifically configured for each stage of production,
+resulting in increased throughput and better work outcomes.
+To achieve that result, it uses various algorithms from the literature and original.
+This combination of algorithms produces results that are better than human-made results.
 
 ## Features
 
-- **Optimizes Supply Chains**: Founds the best solution for the needed amount of materials and given suppliers.
-- **Better Material Efficiency**: Reduces the amount of materials that are wasted in the process.
+- **Optimizes Supply Chains**: Founds the best solution for the needed number of materials and given suppliers.
+- **Better Material Efficiency**: Reduces the number of materials that are wasted in the process.
 - **Improved Efficiency**: Enhances productivity at various stages of furniture production.
 - **Seamless Integration**: Facilitates communication and collaboration between departments by integrating different production stages.
 
@@ -17,7 +24,7 @@ FurniFab is a key tool for furniture manufacturers, enabling significant improve
 
 - **Enhanced Throughput**: Tailored configurations for each production stage lead to improved throughput.
 - **Better Results**: Achieves superior work results by optimizing each step of the production process.
-- **Increased Collaboration**: Integrates various production phases, improving inter-departmental communication and cooperation.
+- **Increased Collaboration**: Integrates various production phases, improving interdepartmental communication and cooperation.
 - **Benchmarking Performance**: Sets a new standard for quality and efficiency in the furniture manufacturing industry.
 
 ## Download Installers
@@ -26,7 +33,7 @@ Installer files for all supported platforms can be downloaded at [https://adiant
 
 ## User manual
 
-The user manual is available at [USER MANUAL](USER_MANUAL.md).
+The user manual is available at [USER MANUAL](.github/USER_MANUAL.md).
 
 ## Building
 
@@ -44,7 +51,7 @@ Tauri CLI can be installed with:
 cargo install tauri-cli
 ```
 
-To build and sign packages you need to generate key pair:
+To build and sign packages, you need to generate a key pair:
 ```bash
 cargo tauri signer generate
 ```
@@ -73,16 +80,16 @@ The above line will generate instructions on how to provide a private key during
    cargo tauri build
    ```
 
-This repository contains a bundled Python interpreter that is embedded in the application when building installers. The repository also contains compiled static libraries for all supported platforms of the C part of the project.
+This repository contains a bundled Python interpreter embedded in the application when building installers.
+The repository also contains compiled static libraries for all supported platforms of the C part of the project.
 
 ### More
 
-For more details on building the project and architecture details see the [BUILDING](BUILDING.md) file.
-
+For more details on building the project and architecture details see the [BUILDING](.github/BUILDING.md) file.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
