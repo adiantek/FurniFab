@@ -146,8 +146,10 @@ consider the data size — the number of tasks can affect the performance of the
 
 **Pa, Johnson, Johnson2, Neh** - These algorithms are fast but may not produce the best results.
 
+**PA** algorithm is only recommended for the special case where the processing time on the second machine is greater than or equal to the processing time on the first machine for a given job.
+
 **BB** - This algorithm is slower but produces optimal results.
-Not recommended for data with more than 20 tasks.
+Not recommended for data with more than 10 tasks.
 
 ## Create a task
 
