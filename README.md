@@ -87,6 +87,13 @@ The repository also contains compiled static libraries for all supported platfor
 
 For more details on building the project and architecture details see the [BUILDING](.github/BUILDING.md) file.
 
+### Authors
+
+[Paulina Szyszko](https://github.com/Shatevar) \
+[Natalia Wasiak](https://github.com/natwas00) \
+[Adrian Antkowiak](https://github.com/adiantek) \
+[Bartosz Wawrzyniak](https://github.com/SamPanDonte)
+
 ## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
