@@ -95,7 +95,17 @@ This tab is used to manage furniture production tasks parameters. It allows you 
 
 ## Cutting plan
 
-# TODO: Describe the Cutting plan
+This tab is used to generate cutting plans for materials. It allows you to specify the dimensions of the material and
+the parts to be cut.
+
+<img src="CuttingPlan.png" alt="Application screenshot with guide">
+
+1. **Algorithm** - This area allows you to select the algorithm used to generate the cutting plan.
+   Different algorithms may produce different results and performance.
+2. **Board dimensions** - This area allows you to specify the dimensions of the material to be cut.
+3. **Parts** - This area allows you to specify the parts to be cut. Parts are assiocated with tasks.
+4. **Generate** - This button is used to generate the cutting plan. Generate will remove all existing cutting plans.
+5. **Cutting plan** - This area displays the cutting plan.
 
 ## Cutting
 
@@ -146,7 +156,8 @@ consider the data size — the number of tasks can affect the performance of the
 
 **Pa, Johnson, Johnson2, Neh** - These algorithms are fast but may not produce the best results.
 
-**PA** algorithm is only recommended for the special case where the processing time on the second machine is greater than or equal to the processing time on the first machine for a given job.
+**PA** algorithm is only recommended for the special case where the processing time on the second machine is greater
+than or equal to the processing time on the first machine for a given job.
 
 **BB** - This algorithm is slower but produces optimal results.
 Not recommended for data with more than 10 tasks.
