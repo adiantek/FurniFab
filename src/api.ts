@@ -97,6 +97,29 @@ function parseDates(task: BusinessTask): BusinessTask {
   return task
 }
 
+export enum BinPackingAlgorithm {
+  FFDH = 'FFDH'
+}
+
+export interface Bin {
+  id: number
+  w: number
+  h: number
+}
+
+export interface Rect {
+  id: number
+  bin_id?: number
+  x?: number
+  y?: number
+  w: number
+  h: number
+  color?: string
+}
+export function binPacking(bin: Bin, rects: Rect[], algorithm: BinPackingAlgorithm): Promise<Rect[]> {
+  return invoke('run_bin_packing', { bin, rects, algorithm })
+}
+
 export async function importApi(): Promise<BusinessTask[]> {
   const tasks: BusinessTask[] | undefined = JSON.parse(
     (await invoke('import').catch(onError)) as string

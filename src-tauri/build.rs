@@ -8,6 +8,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("cargo:rustc-link-search={path_str}");
     println!("cargo:rustc-link-lib=python3api");
+    println!("cargo:rustc-link-lib=binpacking_lib");
 
     tauri_build::build();
 

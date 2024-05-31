@@ -5,6 +5,7 @@ use serde::Serialize;
 use tauri::api::process::{Command, CommandEvent};
 use tauri::{AppHandle, RunEvent};
 
+use app::bin_packing::*;
 use app::conflicts::*;
 use app::data::*;
 use app::flow::*;
@@ -62,6 +63,7 @@ fn main() {
             run_resource,
             run_scheduling_conflicts,
             run_flow,
+            run_bin_packing,
             import,
             export,
             load_data,

@@ -16,13 +16,13 @@ load()
         <router-link to="/tasks" class="nav-link" active-class="active">Zadania</router-link>
       </div>
       <div class="nav-item">
+        <router-link to="/binpacking" class="nav-link" active-class="active">Planowanie wycinki</router-link>
+      </div>
+      <div class="nav-item">
         <router-link to="/conflict" class="nav-link" active-class="active">Wycinanie</router-link>
       </div>
       <div class="nav-item">
         <router-link to="/flow" class="nav-link" active-class="active">Wykańczanie</router-link>
-      </div>
-      <div class="nav-item">
-        <router-link to="/demo" class="nav-link" active-class="active">Demo</router-link>
       </div>
       <CreateBusinessTaskButtonComponent />
       <div>
