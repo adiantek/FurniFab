@@ -5,7 +5,8 @@ export interface BusinessTask {
   id: number
   name: string
   cuttingInfo: CuttingInfo
-  flowInfo: FlowInfo
+  flowInfo: FlowInfo,
+  rectInfo: RectInfo
 }
 
 export interface CuttingInfo {
@@ -21,6 +22,16 @@ export interface FlowInfo {
   lacqueringProcessTime: number
   grinding?: [Date, number][]
   lacquering?: [Date, number][]
+}
+
+export interface RectInfo {
+  id: number
+  bin_id?: number
+  x?: number
+  y?: number
+  w: number
+  h: number
+  color?: string
 }
 
 const businessTasks = ref<BusinessTask[]>([])
@@ -41,12 +52,21 @@ export function getTaskIndex(list: BusinessTask[], id: number): number {
   return list.findIndex((task) => task.id === id)
 }
 
+function loadData(data: BusinessTask[] | null): void {
+  if (data === null) {
+    return
+  }
+  businessTasks.value = data
+  if (data.length > 0) {
+    nextTaskId.value = Math.max(...data.map((task) => task.id)) + 1
+  }  else {
+    nextTaskId.value = 0
+  }
+}
+
 export async function importData(): Promise<void> {
   const data = await importApi()
-  if (data != null) {
-    businessTasks.value = data
-    nextTaskId.value = Math.max(...data.map((task) => task.id)) + 1
-  }
+  loadData(data)
 }
 
 export async function exportData(): Promise<void> {
@@ -59,8 +79,5 @@ export function save(): Promise<void> {
 
 export async function load(): Promise<void> {
   const data = await loadApi()
-  if (data != null) {
-    businessTasks.value = data
-    nextTaskId.value = Math.max(...data.map((task) => task.id)) + 1
-  }
+  loadData(data)
 }

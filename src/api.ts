@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api'
-import type { BusinessTask } from '@/composables/TaskComposable'
+import type { BusinessTask, RectInfo } from '@/composables/TaskComposable'
 import { useToast } from 'bootstrap-vue-next'
 
 export enum ConflictAlgorithm {
@@ -97,16 +97,7 @@ export interface Bin {
   h: number
 }
 
-export interface Rect {
-  id: number
-  bin_id?: number
-  x?: number
-  y?: number
-  w: number
-  h: number
-  color?: string
-}
-export function binPacking(bin: Bin, rects: Rect[], algorithm: BinPackingAlgorithm): Promise<Rect[]> {
+export function binPacking(bin: Bin, rects: RectInfo[], algorithm: BinPackingAlgorithm): Promise<RectInfo[]> {
   return invoke('run_bin_packing', { bin, rects, algorithm })
 }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type BusinessTask, getTask, useBusinessTasks } from '@/composables/TaskComposable'
-import { ref } from 'vue'
+import { getTask, useBusinessTasks, type BusinessTask } from '@/composables/TaskComposable';
+import { ref } from 'vue';
 
 const businessTasks = useBusinessTasks()
 

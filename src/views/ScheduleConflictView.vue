@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import {
-ConflictAlgorithm,
-scheduleConflicts,
-type Conflict,
-type ConflictGraph,
-type ConflictTask,
-type Instance
+  ConflictAlgorithm,
+  scheduleConflicts,
+  type Conflict,
+  type ConflictGraph,
+  type ConflictTask,
+  type Instance
 } from '@/api'
 import ScheduleComponent, { type ScheduledTask } from '@/components/ScheduleComponent.vue'
 import {
-getTask,
-getTaskIndex,
-useBusinessTasks,
-type BusinessTask
+  getTask,
+  getTaskIndex,
+  useBusinessTasks,
+  type BusinessTask
 } from '@/composables/TaskComposable'
 import { plusMinutes } from '@/utils'
 import { computed, ref } from 'vue'
@@ -22,7 +22,6 @@ const deadline = 8 * 60
 const businessTasks = useBusinessTasks()
 
 const processors = ref<number>(3)
-const date = new Date(new Date().setHours(8, 0, 0, 0));
 const algorithm = ref<ConflictAlgorithm>(ConflictAlgorithm.List)
 
 const todayTasks = computed<BusinessTask[]>(() =>

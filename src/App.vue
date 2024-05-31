@@ -10,10 +10,10 @@ load()
   <div class="h-100 w-100 d-flex flex-column">
     <nav class="nav nav-tabs">
       <div class="nav-item">
-        <router-link to="/" class="nav-link" active-class="active">Home</router-link>
+        <router-link to="/" class="nav-link" active-class="active">Zadania</router-link>
       </div>
       <div class="nav-item">
-        <router-link to="/tasks" class="nav-link" active-class="active">Zadania</router-link>
+        <router-link to="/deliveries" class="nav-link" active-class="active">Dostawy</router-link>
       </div>
       <div class="nav-item">
         <router-link to="/binpacking" class="nav-link" active-class="active">Planowanie wycinki</router-link>
@@ -32,10 +32,8 @@ load()
         <LoadingButton :on-click="exportData">Eksport</LoadingButton>
       </div>
     </nav>
-    <div
-      class="w-100 d-flex flex-column align-items-center p-4 m-auto"
-      style="height: calc(100% - 42px); max-width: 1400px"
-    >
+    <div class="w-100 d-flex flex-grow-1 flex-column align-items-center p-4 m-auto"
+      style="max-width: 1400px">
       <router-view />
     </div>
   </div>

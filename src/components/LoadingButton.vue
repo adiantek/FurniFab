@@ -10,8 +10,11 @@ const loading = ref<boolean>(false)
 
 async function click() {
   loading.value = true
-  await props.onClick()
-  loading.value = false
+  try {
+    await props.onClick()
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

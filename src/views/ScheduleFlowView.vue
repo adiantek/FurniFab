@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FlowScript, scheduleFlow, type FlowTask, type FlowScheduleInfo } from '@/api'
+import { FlowScript, scheduleFlow, type FlowScheduleInfo, type FlowTask } from '@/api'
 import type { ScheduledTask } from '@/components/ScheduleComponent.vue'
 import { useBusinessTasks, type BusinessTask } from '@/composables/TaskComposable'
 import { plusMinutes } from '@/utils'

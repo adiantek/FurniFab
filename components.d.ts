@@ -7,12 +7,13 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    AdvancedDatePickerComponent: typeof import('./src/components/AdvancedDatePickerComponent.vue')['default']
     BButton: typeof import('bootstrap-vue-next')['BButton']
+    BCard: typeof import('bootstrap-vue-next')['BCard']
     BCol: typeof import('bootstrap-vue-next')['BCol']
     BFormFloatingLabel: typeof import('bootstrap-vue-next')['BFormFloatingLabel']
     BFormInput: typeof import('bootstrap-vue-next')['BFormInput']
     BFormSelect: typeof import('bootstrap-vue-next')['BFormSelect']
+    BInputGroup: typeof import('bootstrap-vue-next')['BInputGroup']
     BModal: typeof import('bootstrap-vue-next')['BModal']
     BRow: typeof import('bootstrap-vue-next')['BRow']
     BTableSimple: typeof import('bootstrap-vue-next')['BTableSimple']
@@ -21,6 +22,7 @@ declare module 'vue' {
     BTh: typeof import('bootstrap-vue-next')['BTh']
     BThead: typeof import('bootstrap-vue-next')['BThead']
     BToaster: typeof import('bootstrap-vue-next')['BToaster']
+    BTooltip: typeof import('bootstrap-vue-next')['BTooltip']
     BTr: typeof import('bootstrap-vue-next')['BTr']
     BusinessTaskEditorComponent: typeof import('./src/components/BusinessTaskEditorComponent.vue')['default']
     CreateBusinessTaskButtonComponent: typeof import('./src/components/CreateBusinessTaskButtonComponent.vue')['default']
@@ -30,8 +32,5 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     ScheduleComponent: typeof import('./src/components/ScheduleComponent.vue')['default']
     TrashIconComponent: typeof import('./src/components/TrashIconComponent.vue')['default']
-    ZoomInIconComponent: typeof import('./src/components/ZoomInIconComponent.vue')['default']
-    ZoomOutIconComponent: typeof import('./src/components/ZoomOutIconComponent.vue')['default']
-    ZoomResetIconComponent: typeof import('./src/components/ZoomResetIconComponent.vue')['default']
   }
 }
