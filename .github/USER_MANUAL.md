@@ -91,7 +91,7 @@ This tab is used to manage furniture production tasks parameters. It allows you 
 
 ## Supply
 
-# TODO: Describe the Supply tab
+TODO: Describe the Supply tab
 
 ## Cutting plan
 
@@ -165,12 +165,8 @@ Not recommended for data with more than 10 tasks.
 ## Create a task
 
 Create task button is used to create a new task. It opens a dialog where you can specify the parameters of the task.
-
-<img src="Missing.png" alt="TODO: Here add screen of application with annotations">
-
-1. **Task name** - The name of the task.
-
-# TODO adds more details as features are finalized
+It allows you to specify all the necessary information for the task, such as the name, dimensions, and materials for all
+workflow stages.
 
 ## Import
 
