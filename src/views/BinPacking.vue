@@ -2,8 +2,6 @@
 import { ref, type Ref } from 'vue'
 import { binPacking, BinPackingAlgorithm, type Rect } from '@/api'
 
-const result = ref<Rect[] | undefined>()
-
 const algorithm = ref(BinPackingAlgorithm.FFDH);
 const rectangles = ref([]) as Ref<Rect[]>;
 const binW = ref(100);
@@ -13,7 +11,6 @@ const minW = ref(1);
 const maxW = ref(10);
 const minH = ref(1);
 const maxH = ref(10);
-const sizeRandPrompt = ref(false);
 
 const addRect = () => {
   const w = Math.floor(Math.random() * (maxW.value - minW.value + 1) + minW.value);
@@ -24,14 +21,6 @@ const addRect = () => {
     w: w,
     h: h
   })
-};
-
-const randAll = () => {
-  for (let i = 0; i < rectangles.value.length; i++) {
-    rectangles.value[i].w = Math.floor(Math.random() * (maxW.value - minW.value + 1) + minW.value);
-    rectangles.value[i].h = Math.floor(Math.random() * (maxH.value - minH.value + 1) + minH.value);
-  }
-  sizeRandPrompt.value = false;
 };
 
 const removeRect = (rect: Rect) => {
@@ -72,24 +61,6 @@ const runAlgo = async () => {
 }
 </style>
 <template>
-  <b-modal v-model="sizeRandPrompt" title="Wybierz przedział losowania">
-    <b-form-floating-label label="Minimalna szerokość" class="mb-3">
-      <b-form-input type="number" v-model.number="minW" placeholder="" />
-    </b-form-floating-label>
-    <b-form-floating-label label="Maksymalna szerokość" class="mb-3">
-      <b-form-input type="number" v-model.number="maxW" placeholder="" />
-    </b-form-floating-label>
-    <b-form-floating-label label="Minimalna wysokość" class="mb-3">
-      <b-form-input type="number" v-model.number="minH" placeholder="" />
-    </b-form-floating-label>
-    <b-form-floating-label label="Maksymalna wysokość" class="mb-3">
-      <b-form-input type="number" v-model.number="maxH" placeholder="" />
-    </b-form-floating-label>
-    <template #footer>
-      <b-button variant="secondary" @click="sizeRandPrompt = false">Zamknij</b-button>
-      <b-button variant="primary" @click="randAll">Wylosuj</b-button>
-    </template>
-  </b-modal>
   <b-row class="w-100 h-100">
     <b-col class="d-flex flex-column max-h-100">
       <b-form-floating-label label="Wybierz algorytm" class="mb-3">
@@ -145,9 +116,6 @@ const runAlgo = async () => {
       <b-row>
         <b-col sm="12" md="4" class="mt-3">
           <b-button variant="primary" @click="addRect" class="d-block mx-auto h-100">Dodaj element</b-button>
-        </b-col>
-        <b-col sm="12" md="4" class="mt-3">
-          <b-button variant="primary" @click="sizeRandPrompt = true" class="d-block mx-auto h-100">Wylosuj rozmiary</b-button>
         </b-col>
         <b-col sm="12" md="4" class="mt-3">
           <b-button variant="primary" @click="runAlgo" class="d-block mx-auto h-100" :disabled="runningAlgo">Utwórz ułożenie</b-button>

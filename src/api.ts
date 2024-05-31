@@ -2,12 +2,6 @@ import { invoke } from '@tauri-apps/api'
 import type { BusinessTask } from '@/composables/TaskComposable'
 import { useToast } from 'bootstrap-vue-next'
 
-export interface CommandOutput {
-  stdout: string
-  stderr: string
-  error: string[]
-}
-
 export enum ConflictAlgorithm {
   List = 'List',
   VNS = 'VNS',
@@ -61,10 +55,6 @@ export interface FlowScheduleInfo {
 export interface FlowSchedule {
   grinding: FlowScheduleInfo[][]
   lacquering: FlowScheduleInfo[][]
-}
-
-export function runExecutable(exec: string, stdin: string): Promise<CommandOutput> {
-  return invoke('run_resource', { exec, stdin }).catch(onError) as Promise<CommandOutput>
 }
 
 export async function scheduleConflicts(
