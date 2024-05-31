@@ -8,15 +8,26 @@ use tauri::AppHandle;
 use crate::Error;
 
 const FILENAME: &str = "data.json";
+const FILE_TYPE: &str = "JSON";
+const EXTENSIONS: &[&str] = &["json"];
 
 #[tauri::command]
 pub async fn import() -> Result<Option<String>, Error> {
-    load_path(FileDialogBuilder::new().pick_file())
+    load_path(
+        FileDialogBuilder::new()
+            .add_filter(FILE_TYPE, EXTENSIONS)
+            .pick_file(),
+    )
 }
 
 #[tauri::command]
 pub async fn export(data: String) -> Result<(), Error> {
-    save_path(FileDialogBuilder::new().save_file(), data)
+    save_path(
+        FileDialogBuilder::new()
+            .add_filter(FILE_TYPE, EXTENSIONS)
+            .save_file(),
+        data,
+    )
 }
 
 #[tauri::command]
