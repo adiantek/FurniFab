@@ -19,8 +19,10 @@ async function click() {
 </script>
 
 <template>
-  <button class="btn btn-primary m-auto me-1" :disabled="loading || disabled" @click="click">
-    <span v-if="loading" class="spinner-border spinner-border-sm" role="status"></span>
-    <slot v-else></slot>
-  </button>
+  <div class="mx-1 my-1">
+    <b-button variant="outline-primary" class="m-auto" :disabled="loading || disabled" @click="click">
+      <span v-if="loading" class="spinner-border spinner-border-sm" role="status"></span>
+      <slot v-else></slot>
+    </b-button>
+  </div>
 </template>

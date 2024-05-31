@@ -58,8 +58,8 @@ function save() {
 </script>
 
 <template>
-  <div>
-    <button class="btn btn-primary" @click="show = !show">Stwórz zadanie</button>
+  <div class="my-1">
+    <b-button variant="outline-primary" @click="show = !show">Stwórz zadanie</b-button>
     <BModal
       v-model="show"
       :okDisabled="!valid"

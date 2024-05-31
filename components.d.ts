@@ -10,11 +10,16 @@ declare module 'vue' {
     BButton: typeof import('bootstrap-vue-next')['BButton']
     BCard: typeof import('bootstrap-vue-next')['BCard']
     BCol: typeof import('bootstrap-vue-next')['BCol']
+    BCollapse: typeof import('bootstrap-vue-next')['BCollapse']
     BFormFloatingLabel: typeof import('bootstrap-vue-next')['BFormFloatingLabel']
     BFormInput: typeof import('bootstrap-vue-next')['BFormInput']
     BFormSelect: typeof import('bootstrap-vue-next')['BFormSelect']
     BInputGroup: typeof import('bootstrap-vue-next')['BInputGroup']
     BModal: typeof import('bootstrap-vue-next')['BModal']
+    BNavbar: typeof import('bootstrap-vue-next')['BNavbar']
+    BNavbarBrand: typeof import('bootstrap-vue-next')['BNavbarBrand']
+    BNavbarNav: typeof import('bootstrap-vue-next')['BNavbarNav']
+    BNavbarToggle: typeof import('bootstrap-vue-next')['BNavbarToggle']
     BRow: typeof import('bootstrap-vue-next')['BRow']
     BTableSimple: typeof import('bootstrap-vue-next')['BTableSimple']
     BTbody: typeof import('bootstrap-vue-next')['BTbody']
@@ -32,5 +37,8 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     ScheduleComponent: typeof import('./src/components/ScheduleComponent.vue')['default']
     TrashIconComponent: typeof import('./src/components/TrashIconComponent.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    vBColorMode: typeof import('bootstrap-vue-next')['vBColorMode']
   }
 }
