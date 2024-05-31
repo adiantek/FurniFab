@@ -67,7 +67,7 @@ FurniFab is a comprehensive software suite that covers various aspects of furnit
 It is divided into modules, each focusing on a specific stage of production.
 The modules are interconnected to provide a seamless workflow from planning to production.
 
-<img src="Missing.png" alt="TODO: Here add screen of application with annotations">
+<img src="Overview.png" alt="Application screenshot with guide">
 
 1. **Tasks** - This tab is used to manage furniture production tasks parameters.
 2. **Supply** - This tab is used to manage suppliers and materials.
