@@ -61,7 +61,7 @@ The above line will generate instructions on how to provide a private key during
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/furnifab.git
+    git clone https://github.com/adiantek/FurniFab.git
     ```
 2. Navigate to the project directory:
     ```bash
