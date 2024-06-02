@@ -190,27 +190,8 @@ python -m unittest discover -p automatic_tests*.py
 
 ### Material management module
 
-TODO: Add Material management module description
-
-#### Algorithms
-
-TODO: Add Material management module algorithms description
-
-#### Prerequisites
-
-TODO: Add Material management module prerequisites
-
-#### Running
-
-TODO: Add Material management module running description
-
-#### Building
-
-TODO: Add Material management module building description
-
-#### Tests
-
-TODO: Add Material management module tests description
+This module is located in a separate repository and this repository contains only compiled binaries of source code.
+Link to this repository: https://github.com/adiantek/binpacking
 
 ### Cutting management module
 
