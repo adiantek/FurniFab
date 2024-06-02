@@ -102,10 +102,23 @@ export async function exportData(): Promise<void> {
 }
 
 export function save(): Promise<void> {
-  return saveApi(businessTasks.value)
+  const data: ExportData = {
+    businessTasks: businessTasks.value,
+    suppliers: useSuppliers().value,
+    supplyPlan: useSupplyPlan().value,
+    boardSize: [useBoardWidth().value, useBoardHeight().value]
+  }
+  return saveApi(data)
 }
 
 export async function load(): Promise<void> {
   const data = await loadApi()
-  loadData(data.businessTasks)
+
+  if (data) {
+    loadData(data.businessTasks)
+    useSuppliers().value = data.suppliers
+    useSupplyPlan().value = data.supplyPlan
+    useBoardWidth().value = data.boardSize[0]
+    useBoardHeight().value = data.boardSize[1]
+  }
 }

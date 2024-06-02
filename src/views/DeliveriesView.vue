@@ -4,25 +4,7 @@ import { type Supplier, useSuppliers, useSupplyPlan } from '@/composables/Suppli
 import { useBusinessTasks } from '@/composables/TaskComposable'
 import { ref } from 'vue'
 
-const suppliers = ref<Supplier[]>([
-  {
-    name: 'str',
-    max_amount: 1,
-    costs: [
-      ['string', 1, 1],
-      ['drewno', 2, 3]
-    ]
-  },
-  {
-    name: 'ssssdad',
-    max_amount: 3231,
-    costs: [
-      ['sadas', 1, 1],
-      ['12312', 2, 3],
-      ['21321', 2, 3]
-    ]
-  }
-]) //useSuppliers()
+const suppliers = useSuppliers()
 const addCost = ref<[string, number, number]>(['', 0, 0])
 const supplyPlan = useSupplyPlan()
 const tasks = useBusinessTasks()

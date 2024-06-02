@@ -1,4 +1,5 @@
-import { type Ref, ref } from 'vue'
+import { type Ref, ref, watch } from 'vue'
+import { save } from '@/composables/TaskComposable'
 
 export interface Supplier {
   name: string
@@ -8,6 +9,8 @@ export interface Supplier {
 
 const suppliers = ref<Supplier[]>([])
 
+watch(suppliers, save, { deep: true })
+
 export function useSuppliers(): Ref<Supplier[]> {
   return suppliers
 }
@@ -15,6 +18,8 @@ export function useSuppliers(): Ref<Supplier[]> {
 export type SupplyPlan = [{ supplier: string; supplies: [string, number][] }[], number, number]
 
 const supplyPlan = ref<SupplyPlan | undefined>()
+
+watch(supplyPlan, save, { deep: true })
 
 export function useSupplyPlan(): Ref<SupplyPlan | undefined> {
   return supplyPlan

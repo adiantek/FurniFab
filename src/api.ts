@@ -80,7 +80,9 @@ export interface Edge {
 }
 
 export function findMaxFlowMinCost(edges: Edge[][]): Promise<[Edge[][], number, number]> {
-  return invoke('run_max_flow_min_cost', { edges }).catch(onError) as Promise<[Edge[][], number, number]>
+  return invoke('run_max_flow_min_cost', { edges }).catch(onError) as Promise<
+    [Edge[][], number, number]
+  >
 }
 
 export interface ExportData {
@@ -138,9 +140,13 @@ export function saveApi(data: ExportData): Promise<void> {
   return invoke('save_data', { data: JSON.stringify(data) }).catch(onError) as Promise<void>
 }
 
-export async function loadApi(): Promise<ExportData> {
-  const data: ExportData = JSON.parse((await invoke('load_data').catch(onError)) as string);
-  data.businessTasks = data.businessTasks.map(parseDates)
+export async function loadApi(): Promise<ExportData | undefined> {
+  const data: ExportData | undefined = JSON.parse(
+    (await invoke('load_data').catch(onError)) as string
+  )
+  if (data) {
+    data.businessTasks = data.businessTasks.map(parseDates)
+  }
   return data
 }
 
