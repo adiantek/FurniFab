@@ -1,12 +1,19 @@
 import { type Ref, ref, watch } from 'vue'
-import { exportApi, importApi, loadApi, saveApi } from '@/api'
+import { exportApi, type ExportData, importApi, loadApi, saveApi } from '@/api'
+import { useSuppliers, useSupplyPlan } from '@/composables/SupplierComposable'
 
 export interface BusinessTask {
   id: number
   name: string
   cuttingInfo: CuttingInfo
-  flowInfo: FlowInfo,
+  flowInfo: FlowInfo
   rectInfo: RectInfo
+  materialInfo: MaterialInfo
+}
+
+export interface MaterialInfo {
+  material: string
+  amount: number
 }
 
 export interface CuttingInfo {
@@ -36,6 +43,17 @@ export interface RectInfo {
 
 const businessTasks = ref<BusinessTask[]>([])
 
+const boardHeight: Ref<number> = ref(100)
+const boardWidth: Ref<number> = ref(100)
+
+export function useBoardHeight(): Ref<number> {
+  return boardHeight
+}
+
+export function useBoardWidth(): Ref<number> {
+  return boardWidth
+}
+
 export const nextTaskId = ref<number>(0)
 
 watch(businessTasks, save, { deep: true })
@@ -59,18 +77,28 @@ function loadData(data: BusinessTask[] | null): void {
   businessTasks.value = data
   if (data.length > 0) {
     nextTaskId.value = Math.max(...data.map((task) => task.id)) + 1
-  }  else {
+  } else {
     nextTaskId.value = 0
   }
 }
 
 export async function importData(): Promise<void> {
   const data = await importApi()
-  loadData(data)
+  loadData(data.businessTasks)
+  useSuppliers().value = data.suppliers
+  useSupplyPlan().value = data.supplyPlan
+  useBoardWidth().value = data.boardSize[0]
+  useBoardHeight().value = data.boardSize[1]
 }
 
 export async function exportData(): Promise<void> {
-  await exportApi(businessTasks.value)
+  const data: ExportData = {
+    businessTasks: businessTasks.value,
+    suppliers: useSuppliers().value,
+    supplyPlan: useSupplyPlan().value,
+    boardSize: [useBoardWidth().value, useBoardHeight().value]
+  }
+  await exportApi(data)
 }
 
 export function save(): Promise<void> {
@@ -79,5 +107,5 @@ export function save(): Promise<void> {
 
 export async function load(): Promise<void> {
   const data = await loadApi()
-  loadData(data)
+  loadData(data.businessTasks)
 }

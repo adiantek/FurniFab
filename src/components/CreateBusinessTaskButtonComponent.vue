@@ -14,7 +14,12 @@ import type { PartialDeep } from '@/utils'
 const businessTasks = useBusinessTasks()
 
 const show = ref<boolean>(false)
-const newTask = ref<PartialDeep<BusinessTask>>({ cuttingInfo: { conflicts: [] }, flowInfo: {}, rectInfo: {} })
+const newTask = ref<PartialDeep<BusinessTask>>({
+  cuttingInfo: { conflicts: [] },
+  flowInfo: {},
+  rectInfo: {},
+  materialInfo: {}
+})
 
 const valid = computed(
   () =>
@@ -24,7 +29,10 @@ const valid = computed(
     newTask.value.rectInfo &&
     validCuttingInfo(newTask.value.cuttingInfo) &&
     validFlowInfo(newTask.value.flowInfo) &&
-    validRectInfo(newTask.value.rectInfo)
+    validRectInfo(newTask.value.rectInfo) &&
+    newTask.value.materialInfo &&
+    newTask.value.materialInfo.material !== undefined &&
+    newTask.value.materialInfo.amount !== undefined
 )
 
 function validCuttingInfo(cuttingInfo: PartialDeep<CuttingInfo>): boolean {
@@ -53,7 +61,7 @@ function save() {
     conflictTask.cuttingInfo.conflicts.push(newTask.value.id)
   }
 
-  newTask.value = { cuttingInfo: { conflicts: [] }, flowInfo: {},  rectInfo: {} }
+  newTask.value = { cuttingInfo: { conflicts: [] }, flowInfo: {}, rectInfo: {} }
 }
 </script>
 

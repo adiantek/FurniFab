@@ -9,6 +9,7 @@ pub mod conflicts;
 pub mod data;
 pub mod flow;
 pub mod python3api;
+pub mod max_flow_min_cost;
 
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum Error {
@@ -20,6 +21,8 @@ pub enum Error {
     InvalidSchedule,
     #[error("Import / export error: {0}")]
     ImportExport(String),
+    #[error("No path provided")]
+    NoPath,
 }
 
 impl Serialize for Error {

@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { BinPackingAlgorithm, binPacking } from '@/api';
-import { useBusinessTasks, type BusinessTask, type RectInfo } from '@/composables/TaskComposable';
+import {
+  useBusinessTasks,
+  type BusinessTask,
+  type RectInfo,
+  useBoardWidth,
+  useBoardHeight
+} from '@/composables/TaskComposable'
 import { computed, ref } from 'vue';
 
 const algorithm = ref(BinPackingAlgorithm.FFDH);
 const businessTasks = computed(() => {
   return useBusinessTasks().value.filter((task) => task.rectInfo !== undefined);
 });
-const binW = ref(100);
-const binH = ref(100);
+const binW = useBoardWidth();
+const binH = useBoardHeight();
 
 const runningAlgo = ref(false);
 const runAlgo = async () => {
