@@ -1,14 +1,11 @@
 use std::collections::HashMap;
-use std::io::Write;
 
 use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
 
 use crate::python3api::Python;
 use crate::Error;
 
 const SCRIPT: &str = include_str!("../../algo/max_flow_min_cost/negative_cycle_removal.py");
-const FILENAME: &str = "flow.txt";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Edge {
@@ -25,7 +22,6 @@ type RawOutput = (HashMap<String, HashMap<String, [u64; 3]>>, u64, u64);
 pub async fn run_max_flow_min_cost(
     edges: Vec<Vec<Edge>>,
 ) -> Result<(Vec<Vec<Edge>>, u64, u64), Error> {
-
     let mut lines: Vec<String> = Vec::new();
 
     for (index, edges) in edges.into_iter().enumerate() {

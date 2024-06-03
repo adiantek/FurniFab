@@ -8,8 +8,8 @@ pub mod bin_packing;
 pub mod conflicts;
 pub mod data;
 pub mod flow;
-pub mod python3api;
 pub mod max_flow_min_cost;
+pub mod python3api;
 
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum Error {
@@ -21,8 +21,6 @@ pub enum Error {
     InvalidSchedule,
     #[error("Import / export error: {0}")]
     ImportExport(String),
-    #[error("No path provided")]
-    NoPath,
 }
 
 impl Serialize for Error {
