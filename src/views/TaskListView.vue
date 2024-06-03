@@ -16,7 +16,10 @@ function remove(id: number) {
   const task = getTask(id)!
 
   for (const conflictId of task.cuttingInfo.conflicts) {
-    const conflictTask = getTask(conflictId)!
+    const conflictTask = getTask(conflictId)
+    if (conflictTask === undefined) {
+      continue
+    }
     conflictTask.cuttingInfo.conflicts = conflictTask.cuttingInfo.conflicts.filter(
       (conflictId) => conflictId !== id
     )

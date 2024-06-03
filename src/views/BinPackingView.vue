@@ -105,7 +105,7 @@ const runAlgo = async () => {
             </b-tr>
           </b-thead>
           <b-tbody>
-            <b-tr v-for="task of businessTasks" :key="task.id">
+            <b-tr v-for="task of businessTasks" :key="task.id" :class="{ 'table-active': task.rectInfo.mouseOver }">
               <b-td class="text-center">
                 <div class="d-flex align-items-center">
                   <span class="colored-rect" :style="`background: ${task.rectInfo.color}`"
@@ -131,7 +131,8 @@ const runAlgo = async () => {
           </b-tbody>
         </b-table-simple>
       </div>
-      <b-button variant="primary" @click="runAlgo" class="d-block mx-auto" :disabled="runningAlgo">Utwórz
+      <b-button variant="primary" @click="runAlgo" class="d-block mx-auto"
+        :disabled="runningAlgo || businessTasks.length === 0">Utwórz
         ułożenie</b-button>
     </b-col>
     <b-col class="overflow-auto">
@@ -139,7 +140,8 @@ const runAlgo = async () => {
         <rect :width="binW" :height="binH" fill="#40404040" />
         <template v-for="task of businessTasks" :key="task.id">
           <rect v-if="task.rectInfo.x !== -1 && task.rectInfo.x !== undefined" :width="task.rectInfo.w"
-            :height="task.rectInfo.h" :x="task.rectInfo.x" :y="task.rectInfo.y" :fill="task.rectInfo.color" />
+            :height="task.rectInfo.h" :x="task.rectInfo.x" :y="task.rectInfo.y" :fill="task.rectInfo.color"
+            @mouseover="task.rectInfo.mouseOver = true" @mouseout="task.rectInfo.mouseOver = undefined" />
         </template>
       </svg>
     </b-col>

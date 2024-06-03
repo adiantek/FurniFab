@@ -39,6 +39,7 @@ export interface RectInfo {
   w: number
   h: number
   color?: string
+  mouseOver?: boolean
 }
 
 const businessTasks = ref<BusinessTask[]>([])

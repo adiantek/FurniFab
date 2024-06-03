@@ -1,224 +1,370 @@
 <script setup lang="ts">
-import { BinPackingAlgorithm, findMaxFlowMinCost } from '@/api'
-import { type Supplier, useSuppliers, useSupplyPlan } from '@/composables/SupplierComposable'
-import { useBusinessTasks } from '@/composables/TaskComposable'
-import { ref } from 'vue'
+import { findMaxFlowMinCost, type Edge } from '@/api';
+import { useSuppliers, useSupplyPlan } from '@/composables/SupplierComposable';
+import { useBusinessTasks } from '@/composables/TaskComposable';
+import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
 const suppliers = useSuppliers()
 const addCost = ref<[string, number, number]>(['', 0, 0])
 const supplyPlan = useSupplyPlan()
 const tasks = useBusinessTasks()
 
-async function run() {
-  const suppliersData = suppliers.value
+type Line = {
+  id: number,
+  group: number,
+  color: string,
 
-  const mats = new Map<string, number>()
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
 
-  tasks.value.forEach((task) => {
-    if (!mats.has(task.materialInfo.material)) {
-      mats.set(task.materialInfo.material, 0)
+  angle: number,
+
+  p1: string,
+  p2: string,
+
+  cost: number,
+  flow?: number,
+  maxFlow: number
+}
+
+const lines = ref<Line[]>([])
+const deliveries = ref<number[]>([])
+const transports = ref<number[]>([])
+const names = reactive<Record<string, string>>({
+  startPoint: 'Tartak',
+  endPoint: 'Fabryka'
+})
+
+const addLine = (p1: string, p2: string, group: number) => {
+  lines.value.push({
+    id: lines.value.length,
+    group,
+    color: ['#dc3545', '#198754', '#0dcaf0'][group % 3],
+    x1: 0,
+    y1: 0,
+    x2: 0,
+    y2: 0,
+    angle: 0,
+    p1,
+    p2,
+    cost: 0,
+    maxFlow: 0
+  })
+}
+
+const sortLines = () => {
+  lines.value.sort((a, b) => {
+    if (a.group < b.group) {
+      return -1
     }
-    mats.set(
-      task.materialInfo.material,
-      mats.get(task.materialInfo.material)! + task.materialInfo.amount
-    )
+    if (a.group > b.group) {
+      return 1
+    }
+    const v = a.p1.localeCompare(b.p1)
+    if (v !== 0) {
+      return v
+    }
+    return a.p2.localeCompare(b.p2)
   })
+}
 
-  const materials = Array.from(new Set(tasks.value.map((task) => task.materialInfo.material)))
+let deliveryCounter = 1
+const addDelivery = () => {
+  const newPoint = deliveryCounter++
+  names[`delivery-${newPoint}`] = `Dostawca nr ${newPoint}`
+  deliveries.value.push(newPoint)
+  addLine('startPoint', `delivery-${newPoint}`, 0)
+  for (const transport of transports.value) {
+    addLine(`delivery-${newPoint}`, `transport-${transport}`, 1)
+  }
+  sortLines()
+}
 
-  const edges = [
-    suppliersData.map((supp, i) => {
-      return {
-        to: i + 2,
-        capacity: 4294967295,
-        cost: 0
+let transportCounter = 1
+const addTransport = () => {
+  const newPoint = transportCounter++
+  names[`transport-${newPoint}`] = `Transport nr ${newPoint}`
+  transports.value.push(newPoint)
+  for (const delivery of deliveries.value) {
+    addLine(`delivery-${delivery}`, `transport-${newPoint}`, 1)
+  }
+  addLine(`transport-${newPoint}`, `endPoint`, 2)
+  sortLines()
+}
+
+const svg = ref()
+const graph = ref()
+
+const updateSize = () => {
+  const svgElement: SVGElement | undefined = svg.value
+  if (!svgElement || !graph.value) {
+    return
+  }
+  const graphBB = graph.value.$el.getBoundingClientRect()
+  const svgBB = svgElement.getBoundingClientRect()
+
+  svgElement.setAttribute('width', `${graphBB.width}px`)
+  svgElement.setAttribute('height', `${graphBB.height}px`)
+
+  const cache = new Map<string, DOMRect>();
+  for (const line of lines.value) {
+    if (!cache.has(line.p1)) {
+      const p1 = document.getElementById(line.p1)
+      if (!p1) {
+        continue
       }
-    })
-  ]
+      cache.set(line.p1, p1.getBoundingClientRect())
+    }
+    if (!cache.has(line.p2)) {
+      const p2 = document.getElementById(line.p2)
+      if (!p2) {
+        continue
+      }
+      cache.set(line.p2, p2.getBoundingClientRect())
+    }
+  }
 
-  suppliersData.forEach((supplier) => {
-    edges.push(
-      supplier.costs.map((delivery) => {
-        return {
-          to: materials.indexOf(delivery[0]) + 2 + suppliersData.length,
-          capacity: delivery[1],
-          cost: delivery[2]
-        }
+  for (const line of lines.value) {
+    const p1 = cache.get(line.p1)
+    const p2 = cache.get(line.p2)
+    if (!p1 || !p2) {
+      continue
+    }
+    line.x1 = p1.x - svgBB.left + p1.width
+    line.y1 = p1.y - svgBB.top + p1.height / 2
+    line.x2 = p2.x - svgBB.left
+    line.y2 = p2.y - svgBB.top + p2.height / 2
+    line.angle = (line.x2 == line.x1 ? 0 : Math.atan((line.y2 - line.y1) / (line.x2 - line.x1)) * 180 / Math.PI)
+  }
+}
+
+const tick = () => {
+  if (!mounted) {
+    return
+  }
+  updateSize()
+  window.requestAnimationFrame(tick)
+}
+
+let mounted = false
+onMounted(() => {
+  mounted = true
+  tick()
+})
+
+onUnmounted(() => {
+  mounted = false
+})
+
+const deletingTransport = ref(false)
+const deletingDelivery = ref(false)
+const deleteTransport = (transport: number) => {
+  if (deletingTransport.value) {
+    transports.value = transports.value.filter((t) => t !== transport)
+    lines.value = lines.value.filter((line) => line.p2 !== `transport-${transport}`)
+    lines.value = lines.value.filter((line) => line.p1 !== `transport-${transport}`)
+    delete names[`transport-${transport}`]
+    sortLines()
+    deletingTransport.value = false
+  }
+}
+const deleteDelivery = (delivery: number) => {
+  if (deletingDelivery.value) {
+    deliveries.value = deliveries.value.filter((d) => d !== delivery)
+    lines.value = lines.value.filter((line) => line.p1 !== `delivery-${delivery}`)
+    lines.value = lines.value.filter((line) => line.p2 !== `delivery-${delivery}`)
+    delete names[`delivery-${delivery}`]
+    sortLines()
+    deletingDelivery.value = false
+  }
+}
+
+const mapPoint = (point: string) => {
+  if (point === 'startPoint') {
+    return 1
+  }
+  if (point === 'endPoint') {
+    return deliveries.value.length + transports.value.length + 2
+  }
+  if (point.startsWith('delivery-')) {
+    return deliveries.value.indexOf(Number(point.substring(9))) + 2
+  }
+  if (point.startsWith('transport-')) {
+    return transports.value.indexOf(Number(point.substring(10))) + deliveries.value.length + 2
+  }
+  throw new Error('Invalid point name')
+}
+
+const creatingPlan = ref(false)
+const createPlan = async () => {
+  deletingTransport.value = false
+  deletingDelivery.value = false
+  creatingPlan.value = true
+
+  const edges: Edge[][] = [];
+  for (const line of lines.value) {
+    if (line.maxFlow > 0) {
+      const p1 = mapPoint(line.p1)
+      const p2 = mapPoint(line.p2)
+      while (edges.length < p1) {
+        edges.push([])
+      }
+      edges[p1 - 1].push({
+        to: p2,
+        capacity: line.maxFlow,
+        cost: line.cost
       })
-    )
-  })
-
-  materials.forEach((material) => {
-    edges.push([
-      {
-        to: materials.length + suppliersData.length + 2,
-        capacity: mats.get(material)!,
-        cost: 0
-      }
-    ])
-  })
-
+    }
+  }
   edges.push([])
 
-  const result = await findMaxFlowMinCost(edges)
-
-  supplyPlan.value = [
-    result[0]
-      .filter((x, i) => {
-        return i !== 0 && i! <= suppliersData.length
-      })
-      .map((costs, index) => {
-        return {
-          supplier: suppliersData[index].name,
-          supplies: costs
-            .filter((cost) => cost.to <= materials.length + suppliersData.length)
-            .map((cost) => {
-              return [materials[cost.to - 1 - suppliersData.length], cost.used_capacity!]
-            })
+  try {
+    const result = await findMaxFlowMinCost(edges)
+    for (const line of lines.value) {
+      if (line.maxFlow > 0) {
+        const p1 = mapPoint(line.p1)
+        const p2 = mapPoint(line.p2)
+        const edge = result[0][p1 - 1].find((e) => e.to === p2)
+        if (edge) {
+          line.flow = edge.used_capacity!
         }
-      }),
-    result[1],
-    result[2]
-  ]
+      }
+    }
+  } finally {
+    creatingPlan.value = false
+  }
 }
 
-function removeSupplies(supplier: Supplier) {
-  supplier.costs.push(addCost.value)
-  addCost.value = ['', 0, 0]
-}
 </script>
+<style scoped>
+.flex-50 {
+  flex-basis: 50%;
+}
 
+.min-h-100 {
+  min-height: 100%;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+input {
+  width: 100%;
+  --bs-border-color: rgba(0, 0, 0, 0);
+}
+
+.shadow {
+  filter: drop-shadow(0 0 0.75rem rgba(0, 0, 0));
+}
+</style>
 <template>
-  <b-row class="w-100 h-100">
-    <b-col class="d-flex flex-column max-h-100 col-8">
-      <h2>Dostawcy:</h2>
-      <div class="overflow-x-auto flex-grow-1">
-        <b-table-simple bordered small>
-          <b-thead>
-            <b-tr class="text-center">
-              <b-th>Dostawca</b-th>
-              <b-th>Maks dostawa</b-th>
-              <b-th>Towar</b-th>
-              <b-th>Maks</b-th>
-              <b-th>Cena</b-th>
-              <b-th>Akcje</b-th>
-            </b-tr>
-          </b-thead>
-          <b-tbody>
-            <template v-for="(supplier, i) of suppliers" :key="i">
-              <b-tr v-for="(cost, index) of supplier.costs" :key="i + cost[1]">
-                <b-td v-if="index === 0" class="text-center" :rowspan="supplier.costs.length + 1">
-                  <button
-                    class="btn btn-danger btn-sm m-1 float-end"
-                    @click="() => (suppliers = suppliers.filter((_, i2) => i !== i2))"
-                  >
-                    <TrashIconComponent />
-                  </button>
-                  <div class="d-flex align-items-center">
-                    <b-form-input v-model="supplier.name" placeholder="" />
-                  </div>
-                </b-td>
-
-                <b-td v-if="index === 0" class="text-center" :rowspan="supplier.costs.length + 1">
-                  <div class="d-flex align-items-center">
-                    <b-form-input
-                      type="number"
-                      v-model.number="supplier.max_amount"
-                      placeholder=""
-                    />
-                  </div>
-                </b-td>
-
-                <b-td>{{ cost[0] }}</b-td>
-                <b-td>{{ cost[1] }}</b-td>
-                <b-td>{{ cost[2] }}</b-td>
-                <b-th>
-                  <button
-                    class="btn btn-danger btn-sm m-1 float-end"
-                    @click="() => (supplier.costs = supplier.costs.filter((_, i) => i !== index))"
-                  >
-                    <TrashIconComponent />
-                  </button>
-                </b-th>
-              </b-tr>
-              <b-tr>
-                <b-td
-                  v-if="supplier.costs.length === 0"
-                  class="text-center"
-                  :rowspan="supplier.costs.length + 1"
-                >
-                  <button
-                    class="btn btn-danger btn-sm m-1 float-end"
-                    @click="() => (suppliers = suppliers.filter((_, i2) => i !== i2))"
-                  >
-                    <TrashIconComponent />
-                  </button>
-                  <div class="d-flex align-items-center">
-                    <b-form-input v-model="supplier.name" placeholder="" />
-                  </div>
-                </b-td>
-
-                <b-td
-                  v-if="supplier.costs.length === 0"
-                  class="text-center"
-                  :rowspan="supplier.costs.length + 1"
-                >
-                  <div class="d-flex align-items-center">
-                    <b-form-input
-                      type="number"
-                      v-model.number="supplier.max_amount"
-                      placeholder=""
-                    />
-                  </div>
-                </b-td>
-
-                <b-td>
-                  <div class="d-flex align-items-center">
-                    <b-form-input v-model="addCost[0]" placeholder="Towar" />
-                  </div>
-                </b-td>
-                <b-td>
-                  <div class="d-flex align-items-center">
-                    <b-form-input type="number" v-model.number="addCost[1]" placeholder="Maks" />
-                  </div>
-                </b-td>
-                <b-td>
-                  <div class="d-flex align-items-center">
-                    <b-form-input type="number" v-model.number="addCost[2]" placeholder="Cena" />
-                  </div>
-                </b-td>
-                <b-td>
-                  <button class="btn btn-success m-1 float-end" @click="removeSupplies(supplier)">
-                    +
-                  </button>
-                </b-td>
-              </b-tr>
+  <div class="d-flex flex-column h-100 w-100">
+    <div class="w-100 overflow-auto position-relative flex-50">
+      <b-row class="w-100 min-h-100" gutter-x="0" ref="graph">
+        <b-col cols="3">
+          <b-card header="Tartak" class="h-100 border-danger mx-3" header-class="text-center text-bg-danger"
+            body-class="h4 d-flex flex-column align-items-center justify-content-around">
+            <b-badge variant="danger" class="text-wrap" pill="true" id="startPoint">{{ names['startPoint'] }} ({{
+              mapPoint(`startPoint`) }})</b-badge>
+          </b-card>
+        </b-col>
+        <b-col cols="3">
+          <b-card header="Dostawcy" class="h-100 border-success mx-3" header-class="text-center text-bg-success"
+            body-class="h4 d-flex flex-column align-items-center justify-content-around"
+            footer-class="border-success text-center">
+            <template v-for="delivery of deliveries" :key="delivery.num">
+              <b-badge variant="success" class="text-wrap" :class="{ 'cursor-pointer': deletingDelivery }" pill="true"
+                :id="`delivery-${delivery}`" @click="deleteDelivery(delivery)">{{
+                  names[`delivery-${delivery}`] }} ({{ mapPoint(`delivery-${delivery}`) }})</b-badge>
             </template>
-          </b-tbody>
-        </b-table-simple>
-        <button
-          class="btn btn-success m-1 float-end"
-          @click="suppliers.push({ name: '', max_amount: 0, costs: [] })"
-        >
-          Dodaj dostawcę
-        </button>
-      </div>
-      <LoadingButton
-        class="mx-auto"
-        :disabled="suppliers.length === 0 && tasks.length === 0"
-        @click="run"
-        >Utwórz plan dostaw
-      </LoadingButton>
-    </b-col>
-    <b-col class="overflow-auto">
-      <h2>Plan dostaw:</h2>
-      <!--      <svg class="w-100 h-100" :viewBox="`0 0 ${binW} ${binH}`">-->
-      <!--        <rect :width="binW" :height="binH" fill="#40404040" />-->
-      <!--        <template v-for="task of businessTasks" :key="task.id">-->
-      <!--          <rect v-if="task.rectInfo.x !== -1 && task.rectInfo.x !== undefined" :width="task.rectInfo.w"-->
-      <!--                :height="task.rectInfo.h" :x="task.rectInfo.x" :y="task.rectInfo.y" :fill="task.rectInfo.color" />-->
-      <!--        </template>-->
-      <!--      </svg>-->
-    </b-col>
-  </b-row>
+            <template #footer>
+              <b-button class="mx-1" size="sm" variant="danger" v-if="deletingDelivery"
+                @click="deletingDelivery = false">Wybierz dostawcę</b-button>
+              <b-button class="mx-1" size="sm" variant="danger" v-else @click="deletingDelivery = true"
+                :disabled="creatingPlan">Usuń</b-button>
+              <b-button class="mx-1" size="sm" variant="success" @click="addDelivery"
+                :disabled="creatingPlan">Dodaj</b-button>
+            </template>
+          </b-card>
+        </b-col>
+        <b-col cols="3">
+          <b-card header="Transport" class="h-100 border-info mx-3" header-class="text-center text-bg-info"
+            body-class="h4 d-flex flex-column align-items-center justify-content-around"
+            footer-class="border-info text-center">
+            <template v-for="transport of transports" :key="transport.num">
+              <b-badge variant="info" class="text-wrap" :class="{ 'cursor-pointer': deletingTransport }" pill="true"
+                :id="`transport-${transport}`" @click="deleteTransport(transport)">{{
+                  names[`transport-${transport}`] }} ({{ mapPoint(`transport-${transport}`) }})</b-badge>
+            </template>
+            <template #footer>
+              <b-button class="mx-1" size="sm" variant="danger" v-if="deletingTransport"
+                @click="deletingTransport = false">Wybierz transport</b-button>
+              <b-button class="mx-1" size="sm" variant="danger" v-else @click="deletingTransport = true"
+                :disabled="creatingPlan">Usuń</b-button>
+              <b-button class="mx-1" size="sm" variant="info" @click="addTransport"
+                :disabled="creatingPlan">Dodaj</b-button>
+            </template>
+          </b-card>
+        </b-col>
+        <b-col cols="3">
+          <b-card header="Fabryka" class="h-100 border-primary mx-3" header-class="text-center text-bg-primary"
+            body-class="h4 d-flex flex-column align-items-center justify-content-around">
+            <b-badge variant="primary" class="text-wrap" pill="true" id="endPoint">Fabryka ({{ mapPoint(`endPoint`)
+              }})</b-badge>
+          </b-card>
+        </b-col>
+      </b-row>
+      <svg style="left: 0px; top: 0px" class="w-100 position-absolute" ref="svg" pointer-events="none">
+        <template v-for="line of lines" :key="line.id">
+          <template v-if="line.maxFlow > 0">
+            <line :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2" :style="`stroke:${line.color};stroke-width:2`" />
+            <polygon :points="`${line.x2},${line.y2} ${line.x2 - 10},${line.y2 - 10} ${line.x2 - 10},${line.y2 + 10}`"
+              :style="`fill:${line.color}`" :transform="`rotate(${line.angle} ${line.x2} ${line.y2})`" />
+            <text class="shadow" :x="(line.x1 + line.x2) / 2" :y="(line.y1 + line.y2) / 2" style="fill:white"
+              dominant-baseline="ideographic" text-anchor="middle"
+              :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`">Przepływ: {{
+                line.flow ?? "-" }} / {{ line.maxFlow }}</text>
+            <text class="shadow" :x="(line.x1 + line.x2) / 2" :y="(line.y1 + line.y2) / 2" style="fill:white"
+              dominant-baseline="hanging" text-anchor="middle"
+              :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`">Koszt: {{
+                line.cost }}</text>
+          </template>
+        </template>
+      </svg>
+    </div>
+    <div class="overflow-auto flex-50">
+      <b-table-simple small bordered>
+        <b-thead>
+          <b-tr class="text-center">
+            <b-th>Skąd</b-th>
+            <b-th>Dokąd</b-th>
+            <b-th>Koszt</b-th>
+            <b-th>Przepływ</b-th>
+            <b-th>Maksymalny przepływ</b-th>
+          </b-tr>
+        </b-thead>
+        <b-tbody>
+          <b-tr v-for="line of lines" :key="line.id">
+            <b-td class="p-0"><b-form-input v-model="names[line.p1]" size="sm" /></b-td>
+            <b-td class="p-0"><b-form-input v-model="names[line.p2]" size="sm" /></b-td>
+            <b-td class="p-0"><b-form-input type="number" v-model.number="line.cost" size="sm"
+                :disabled="creatingPlan" /></b-td>
+            <b-td class="p-0 text-center">
+              <b-progress v-if="line.flow" :value="line.flow" :max="line.maxFlow"
+                :variant="line.flow === line.maxFlow ? 'success' : 'danger'" size="sm" show-value striped animated />
+              <template v-else>-</template>
+            </b-td>
+            <b-td class="p-0"><b-form-input type="number" v-model.number="line.maxFlow" size="sm"
+                :disabled="creatingPlan" /></b-td>
+          </b-tr>
+        </b-tbody>
+      </b-table-simple>
+    </div>
+    <b-button class="mx-auto" variant="primary"
+      :disabled="deliveries.length === 0 || transports.length === 0 || creatingPlan" @click="createPlan">Utwórz
+      plan</b-button>
+  </div>
 </template>
