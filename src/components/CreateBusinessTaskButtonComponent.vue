@@ -14,7 +14,11 @@ import type { PartialDeep } from '@/utils'
 const businessTasks = useBusinessTasks()
 
 const show = ref<boolean>(false)
-const newTask = ref<PartialDeep<BusinessTask>>({ cuttingInfo: { conflicts: [] }, flowInfo: {}, rectInfo: {} })
+const newTask = ref<PartialDeep<BusinessTask>>({
+  cuttingInfo: { conflicts: [] },
+  flowInfo: {},
+  rectInfo: {}
+})
 
 const valid = computed(
   () =>
@@ -53,7 +57,7 @@ function save() {
     conflictTask.cuttingInfo.conflicts.push(newTask.value.id)
   }
 
-  newTask.value = { cuttingInfo: { conflicts: [] }, flowInfo: {},  rectInfo: {} }
+  newTask.value = { cuttingInfo: { conflicts: [] }, flowInfo: {}, rectInfo: {} }
 }
 </script>
 

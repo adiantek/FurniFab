@@ -8,6 +8,7 @@ pub mod bin_packing;
 pub mod conflicts;
 pub mod data;
 pub mod flow;
+pub mod max_flow_min_cost;
 pub mod python3api;
 
 #[derive(Clone, Debug, Eq, Error, PartialEq)]

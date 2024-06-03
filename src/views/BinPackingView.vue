@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { BinPackingAlgorithm, binPacking } from '@/api';
-import { useBusinessTasks, type BusinessTask, type RectInfo } from '@/composables/TaskComposable';
+import {
+  useBusinessTasks,
+  type BusinessTask,
+  type RectInfo,
+  useBoardWidth,
+  useBoardHeight
+} from '@/composables/TaskComposable'
 import { computed, ref } from 'vue';
+import * as am5 from '@amcharts/amcharts5';
+import am5themes_Dark from '@amcharts/amcharts5/themes/Dark';
+import * as am5xy from '@amcharts/amcharts5/xy';
 
 const algorithm = ref(BinPackingAlgorithm.FFDH);
 const businessTasks = computed(() => {
   return useBusinessTasks().value.filter((task) => task.rectInfo !== undefined);
 });
-const binW = ref(100);
-const binH = ref(100);
+const binW = useBoardWidth();
+const binH = useBoardHeight();
 
 const runningAlgo = ref(false);
 const runAlgo = async () => {
@@ -37,8 +46,17 @@ const runAlgo = async () => {
       rectangles,
       algorithm.value
     );
-    for (let i = 0; i < result.length; i++) {
-      result[i].color = `hsl(${(result[i].id * 50) % 360}, 100%, 50%)`;
+    {
+
+      const div = document.createElement('div')
+      const test_root = am5.Root.new(div);
+      test_root.setThemes([am5themes_Dark.new(test_root)]);
+      const chart = test_root.container.children.push(am5xy.XYChart.new(test_root, {}));
+      const colors = chart.get("colors")!;
+      for (let i = 0; i < result.length; i++) {
+        result[i].color = colors.getIndex(i).toCSSHex()
+      }
+      test_root.dispose();
     }
     const map = new Map<number, RectInfo>();
     for (const rect of result) {
@@ -68,6 +86,22 @@ const runAlgo = async () => {
   height: 1rem;
   margin-right: 0.5rem;
 }
+
+.semi-transparent {
+  opacity: 0.5;
+  transition: opacity 0.3s;
+  outline: none !important;
+}
+
+.svg-text {
+  font-weight: lighter;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.svg-hover {
+  opacity: 1;
+}
 </style>
 <template>
   <b-row class="w-100 h-100">
@@ -88,7 +122,7 @@ const runAlgo = async () => {
         </b-col>
       </b-row>
       <div class="overflow-x-auto flex-grow-1">
-        <b-table-simple bordered small>
+        <b-table-simple bordered small hover>
           <b-thead>
             <b-tr class="text-center">
               <b-th>#</b-th>
@@ -99,7 +133,8 @@ const runAlgo = async () => {
             </b-tr>
           </b-thead>
           <b-tbody>
-            <b-tr v-for="task of businessTasks" :key="task.id">
+            <b-tr v-for="task of businessTasks" :key="task.id" :class="{ 'table-active': task.rectInfo.mouseOver }"
+              @mouseover="task.rectInfo.mouseOver = true" @mouseout="task.rectInfo.mouseOver = undefined">
               <b-td class="text-center">
                 <div class="d-flex align-items-center">
                   <span class="colored-rect" :style="`background: ${task.rectInfo.color}`"
@@ -125,17 +160,35 @@ const runAlgo = async () => {
           </b-tbody>
         </b-table-simple>
       </div>
-      <b-button variant="primary" @click="runAlgo" class="d-block mx-auto" :disabled="runningAlgo">Utwórz
+      <b-button variant="primary" @click="runAlgo" class="d-block mx-auto"
+        :disabled="runningAlgo || businessTasks.length === 0">Utwórz
         ułożenie</b-button>
     </b-col>
     <b-col class="overflow-auto">
       <svg class="w-100 h-100" :viewBox="`0 0 ${binW} ${binH}`">
         <rect :width="binW" :height="binH" fill="#40404040" />
         <template v-for="task of businessTasks" :key="task.id">
-          <rect v-if="task.rectInfo.x !== -1 && task.rectInfo.x !== undefined" :width="task.rectInfo.w"
-            :height="task.rectInfo.h" :x="task.rectInfo.x" :y="task.rectInfo.y" :fill="task.rectInfo.color" />
+          <template
+            v-if="task.rectInfo.x !== -1 && task.rectInfo.x !== undefined && task.rectInfo.y !== undefined && task.rectInfo.y !== -1">
+            <rect :width="task.rectInfo.w" :height="task.rectInfo.h" :x="task.rectInfo.x" :y="task.rectInfo.y"
+              :fill="task.rectInfo.color" @mouseover="task.rectInfo.mouseOver = true"
+              @mouseout="task.rectInfo.mouseOver = undefined" class="semi-transparent"
+              :class="{ 'svg-hover': task.rectInfo.mouseOver }" :id="`tooltip2-${task.id}`" />
+            <text :x="task.rectInfo.x + task.rectInfo.w / 2" :y="task.rectInfo.y + task.rectInfo.h / 2"
+              text-anchor="middle" dominant-baseline="central" fill="white"
+              :font-size="Math.min(task.rectInfo.w, task.rectInfo.h)" pointer-events="none" class="svg-text"
+              :class="{ 'svg-hover': task.rectInfo.mouseOver }">{{ task.id
+              }}</text>
+          </template>
         </template>
       </svg>
+
+      <template v-for="task of businessTasks" :key="task.id">
+        <template
+          v-if="task.rectInfo.x !== -1 && task.rectInfo.x !== undefined && task.rectInfo.y !== undefined && task.rectInfo.y !== -1">
+          <b-tooltip triggers="hover" :target="`tooltip2-${task.id}`">{{ task.name }}</b-tooltip>
+        </template>
+      </template>
     </b-col>
   </b-row>
 </template>

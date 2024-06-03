@@ -27,7 +27,7 @@ const props = defineProps({
 });
 
 const labels = computed(() => {
-  return [...new Set(props.tasks.map(task => task.machine))]
+  return Array.from(new Set(props.tasks.map(task => task.machine)))
     .sort((a, b) => a - b);
 });
 
@@ -57,8 +57,9 @@ onMounted(() => {
   // Define data
   const colors = chart.get("colors")!;
   let idx = 0;
-  props.tasks.sort((a, b) => a.start.getTime() - b.start.getTime());
-  const data = props.tasks.map(task => {
+  const tasks = props.tasks;
+  tasks.sort((a, b) => a.start.getTime() - b.start.getTime());
+  const data = tasks.map(task => {
     const start = task.start.getTime();
     const end = task.end.getTime();
     return {

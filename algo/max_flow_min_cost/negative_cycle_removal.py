@@ -1,6 +1,5 @@
-def read_graph(file_name):
-    file = open(file_name)
-    f = file.readlines()
+def read_graph(file_lines):
+    f = file_lines
     graph = dict()
     list_of_edges = []
     nodes = [i + 1 for i in range(len(f))]
@@ -18,7 +17,6 @@ def read_graph(file_name):
                 edges[i] = [0, 0, 0]
         graph[int((line_split[0])[:-1])] = edges
 
-    file.close()
     return graph, list_of_edges, nodes
 
 def bellman_ford(graph, list_of_edges, nodes, number_of_all_nodes, starting_node):
@@ -186,8 +184,8 @@ def flow_cost(graph, list_of_edges):
             cost += used_capacity * edge_cost
     return cost
 
-def start(file):
-    graph, list_of_edges, nodes = read_graph(file)
+def start(file_lines):
+    graph, list_of_edges, nodes = read_graph(file_lines)
     s = min(nodes)
     t = max(nodes)
     print(graph)
@@ -221,4 +219,7 @@ def start(file):
     return graph, max_flow, cost
 
 if __name__ == '__main__':
-    graph, maximum_flow, minimum_cost = start("file_negative_cycle_x2.txt")
+    f = open("file_negative_cycle_x2.txt", "r")
+    file_lines = f.readlines()
+    f.close()
+    graph, maximum_flow, minimum_cost = start(file_lines)

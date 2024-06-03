@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use bindings::{ffdh_f, Bin, FRect, IRect};
 
-#[allow(clippy::all, dead_code)]
 mod bindings;
 
 /// Definition for serializing and deserializing Bin.

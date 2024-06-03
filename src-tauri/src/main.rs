@@ -7,6 +7,7 @@ use app::bin_packing::*;
 use app::conflicts::*;
 use app::data::*;
 use app::flow::*;
+use app::max_flow_min_cost::*;
 use app::python3api::Python;
 
 fn main() {
@@ -19,6 +20,7 @@ fn main() {
             export,
             load_data,
             save_data,
+            run_max_flow_min_cost,
         ])
         .setup(|app| Python::initialize(app.handle()))
         .build(tauri::generate_context!())
