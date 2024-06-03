@@ -17,8 +17,7 @@ const show = ref<boolean>(false)
 const newTask = ref<PartialDeep<BusinessTask>>({
   cuttingInfo: { conflicts: [] },
   flowInfo: {},
-  rectInfo: {},
-  materialInfo: {}
+  rectInfo: {}
 })
 
 const valid = computed(
@@ -29,10 +28,7 @@ const valid = computed(
     newTask.value.rectInfo &&
     validCuttingInfo(newTask.value.cuttingInfo) &&
     validFlowInfo(newTask.value.flowInfo) &&
-    validRectInfo(newTask.value.rectInfo) &&
-    newTask.value.materialInfo &&
-    newTask.value.materialInfo.material !== undefined &&
-    newTask.value.materialInfo.amount !== undefined
+    validRectInfo(newTask.value.rectInfo)
 )
 
 function validCuttingInfo(cuttingInfo: PartialDeep<CuttingInfo>): boolean {

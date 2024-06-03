@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { findMaxFlowMinCost, type Edge } from '@/api'
+import { deliveryCounter, transportCounter, useSuppliers } from '@/composables/SupplierComposable'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { useSuppliers } from '@/composables/SupplierComposable'
 
 export type Line = {
   id: number
@@ -58,9 +58,8 @@ const sortLines = () => {
   })
 }
 
-let deliveryCounter = 1
 const addDelivery = () => {
-  const newPoint = deliveryCounter++
+  const newPoint = deliveryCounter.value++
   names.value[`delivery-${newPoint}`] = `Dostawca nr ${newPoint}`
   deliveries.value.push(newPoint)
   addLine('startPoint', `delivery-${newPoint}`, 0)
@@ -70,10 +69,9 @@ const addDelivery = () => {
   sortLines()
 }
 
-let transportCounter = 1
 const addTransport = () => {
-  const newPoint = transportCounter++
-  names.value[`transport-${newPoint}`] = `Transport nr ${newPoint}`
+  const newPoint = transportCounter.value++
+  names.value[`transport-${newPoint}`] = `Towar nr ${newPoint}`
   transports.value.push(newPoint)
   for (const delivery of deliveries.value) {
     addLine(`delivery-${delivery}`, `transport-${newPoint}`, 1)
@@ -258,7 +256,7 @@ input {
 }
 
 .shadow {
-  filter: drop-shadow(0 0 0.75rem rgba(0, 0, 0));
+  filter: drop-shadow(0 0 0.75rem #000);
 }
 
 .hoverable {
@@ -339,7 +337,7 @@ input {
         </b-col>
         <b-col cols="3">
           <b-card
-            header="Transport"
+            header="Towary"
             class="h-100 border-info mx-3"
             header-class="text-center text-bg-info"
             body-class="h4 d-flex flex-column align-items-center justify-content-around"
@@ -363,7 +361,7 @@ input {
                 variant="danger"
                 v-if="deletingTransport"
                 @click="deletingTransport = false"
-                >Wybierz transport
+                >Wybierz towar
               </b-button>
               <b-button
                 class="mx-1"
@@ -434,7 +432,7 @@ input {
                 text-anchor="middle"
                 :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`"
               >
-                Przepływ: {{ line.flow ?? '-' }} / {{ line.maxFlow }}
+                {{ line.flow ?? '-' }} / {{ line.maxFlow }}
               </text>
               <text
                 class="shadow"
@@ -459,8 +457,8 @@ input {
             <b-th>Skąd</b-th>
             <b-th>Dokąd</b-th>
             <b-th>Koszt</b-th>
-            <b-th>Przepływ</b-th>
-            <b-th>Maksymalny przepływ</b-th>
+            <b-th>Przepustowość</b-th>
+            <b-th>Maksymalna przepustowość</b-th>
           </b-tr>
         </b-thead>
         <b-tbody>
@@ -507,6 +505,20 @@ input {
             </b-td>
           </b-tr>
         </b-tbody>
+        <b-tfoot>
+          <b-tr>
+            <b-th colspan="2" class="text-end px-3">
+              Suma:
+            </b-th>
+            <b-th class="text-center">
+              {{ lines.reduce((acc, line) => acc + line.cost * (line.flow ?? 0), 0) }}
+            </b-th>
+            <b-th class="text-center">
+              {{ lines.filter((line) => line.p1 === 'startPoint').reduce((acc, line) => acc + (line.flow ?? 0), 0) }}
+            </b-th>
+            <b-td></b-td>
+          </b-tr>
+        </b-tfoot>
       </b-table-simple>
     </div>
     <b-button

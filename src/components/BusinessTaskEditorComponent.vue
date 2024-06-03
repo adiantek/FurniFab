@@ -83,17 +83,5 @@ watch(
 
     </b-card>
 
-    <b-card v-if="model.materialInfo" header="Informacje o materiale" class="mb-3">
-
-      <b-form-floating-label label="Materiał" class="mb-3">
-        <b-form-input type="text" v-model.number="model.materialInfo.material" placeholder="" />
-      </b-form-floating-label>
-
-      <b-form-floating-label label="Ilość" class="mb-3">
-        <b-form-input type="number" v-model.number="model.materialInfo.amount" placeholder="" />
-      </b-form-floating-label>
-
-    </b-card>
-
   </div>
 </template>

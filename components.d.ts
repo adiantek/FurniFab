@@ -26,6 +26,7 @@ declare module 'vue' {
     BTableSimple: typeof import('bootstrap-vue-next')['BTableSimple']
     BTbody: typeof import('bootstrap-vue-next')['BTbody']
     BTd: typeof import('bootstrap-vue-next')['BTd']
+    BTfoot: typeof import('bootstrap-vue-next')['BTfoot']
     BTh: typeof import('bootstrap-vue-next')['BTh']
     BThead: typeof import('bootstrap-vue-next')['BThead']
     BToaster: typeof import('bootstrap-vue-next')['BToaster']

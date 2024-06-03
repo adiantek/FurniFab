@@ -1,6 +1,6 @@
-import { type Ref, ref, watch } from 'vue'
-import { exportApi, type ExportData, importApi, loadApi, saveApi } from '@/api'
-import { useSuppliers } from '@/composables/SupplierComposable'
+import { exportApi, importApi, loadApi, saveApi, type ExportData } from '@/api'
+import { deliveryCounter, transportCounter, useSuppliers } from '@/composables/SupplierComposable'
+import { ref, watch, type Ref } from 'vue'
 
 export interface BusinessTask {
   id: number
@@ -8,12 +8,6 @@ export interface BusinessTask {
   cuttingInfo: CuttingInfo
   flowInfo: FlowInfo
   rectInfo: RectInfo
-  materialInfo: MaterialInfo
-}
-
-export interface MaterialInfo {
-  material: string
-  amount: number
 }
 
 export interface CuttingInfo {
@@ -55,7 +49,7 @@ export function useBoardWidth(): Ref<number> {
   return boardWidth
 }
 
-export const nextTaskId = ref<number>(0)
+export const nextTaskId = ref(0)
 
 watch(businessTasks, save, { deep: true })
 
@@ -71,28 +65,38 @@ export function getTaskIndex(list: BusinessTask[], id: number): number {
   return list.findIndex((task) => task.id === id)
 }
 
-function loadData(data: BusinessTask[] | null): void {
+function loadData(data: ExportData | null): void {
   if (data === null) {
     return
   }
-  businessTasks.value = data
-  if (data.length > 0) {
-    nextTaskId.value = Math.max(...data.map((task) => task.id)) + 1
+  businessTasks.value = data.businessTasks
+  if (data.businessTasks.length > 0) {
+    nextTaskId.value = Math.max(...data.businessTasks.map((task) => task.id)) + 1
   } else {
     nextTaskId.value = 0
+  }
+  useBoardWidth().value = data.boardSize[0]
+  useBoardHeight().value = data.boardSize[1]
+  const { lines, deliveries, transports, names } = useSuppliers()
+  if (data.lines !== undefined) {
+    lines.value = data.lines
+  }
+  if (data.deliveries !== undefined) {
+    deliveries.value = data.deliveries
+    deliveryCounter.value = Math.max(...data.deliveries) + 1
+  }
+  if (data.transports !== undefined) {
+    transports.value = data.transports
+    transportCounter.value = Math.max(...data.transports) + 1
+  }
+  if (data.names !== undefined) {
+    names.value = data.names
   }
 }
 
 export async function importData(): Promise<void> {
   const data = await importApi()
-  loadData(data.businessTasks)
-  useBoardWidth().value = data.boardSize[0]
-  useBoardHeight().value = data.boardSize[1]
-  const { lines, deliveries, transports, names } = useSuppliers()
-  lines.value = data.lines
-  deliveries.value = data.deliveries
-  transports.value = data.transports
-  names.value = data.names
+  loadData(data)
 }
 
 export async function exportData(): Promise<void> {
@@ -125,13 +129,6 @@ export async function load(): Promise<void> {
   const data = await loadApi()
 
   if (data) {
-    loadData(data.businessTasks)
-    useBoardWidth().value = data.boardSize[0]
-    useBoardHeight().value = data.boardSize[1]
-    const { lines, deliveries, transports, names } = useSuppliers()
-    lines.value = data.lines
-    deliveries.value = data.deliveries
-    transports.value = data.transports
-    names.value = data.names
+    loadData(data)
   }
 }
