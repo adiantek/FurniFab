@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use bindings::{ffdh_f, Bin, FRect, IRect};
+use bindings::{ffdh_f, nfdh_f, bfdh_f, wfdh_f, Bin, FRect, IRect};
 
 mod bindings;
 
@@ -80,16 +80,43 @@ fn ffdh(bin: &mut BinWrapper, rects: &mut [FRectWrapper]) {
     unsafe { ffdh_f(bin_pointer, rects_pointer, rects.len()) }
 }
 
+fn nfdh(bin: &mut BinWrapper, rects: &mut [FRectWrapper]) {
+    let bin_pointer = bin as *mut BinWrapper as *mut Bin;
+    let rects_pointer = rects.as_mut_ptr() as *mut FRect;
+    // It's safe to call this function
+    // because we know that the pointers are valid and n is the correct length.
+    unsafe { nfdh_f(bin_pointer, rects_pointer, rects.len()) }
+}
+
+fn bfdh(bin: &mut BinWrapper, rects: &mut [FRectWrapper]) {
+    let bin_pointer = bin as *mut BinWrapper as *mut Bin;
+    let rects_pointer = rects.as_mut_ptr() as *mut FRect;
+    // It's safe to call this function
+    // because we know that the pointers are valid and n is the correct length.
+    unsafe { bfdh_f(bin_pointer, rects_pointer, rects.len()) }
+}
+
+fn wfdh(bin: &mut BinWrapper, rects: &mut [FRectWrapper]) {
+    let bin_pointer = bin as *mut BinWrapper as *mut Bin;
+    let rects_pointer = rects.as_mut_ptr() as *mut FRect;
+    // It's safe to call this function
+    // because we know that the pointers are valid and n is the correct length.
+    unsafe { wfdh_f(bin_pointer, rects_pointer, rects.len()) }
+}
+
 /// Bin packing algorithms.
 #[derive(Debug, Deserialize)]
 pub enum Algorithm {
-    FFDH,
+    FFDH, NFDH, BFDH, WFDH
 }
 
 impl Algorithm {
     fn run(&self, bin: &mut BinWrapper, rects: &mut [FRectWrapper]) {
         match self {
             Algorithm::FFDH => ffdh(bin, rects),
+            Algorithm::NFDH => nfdh(bin, rects),
+            Algorithm::BFDH => bfdh(bin, rects),
+            Algorithm::WFDH => wfdh(bin, rects),
         }
     }
 }

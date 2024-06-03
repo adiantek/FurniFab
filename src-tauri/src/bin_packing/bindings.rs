@@ -448,8 +448,26 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    pub fn bfdh_f(bin: *mut Bin, rect: *mut FRect, n: usize);
+}
+extern "C" {
+    pub fn bfdh_i(bin: *mut Bin, rect: *mut IRect, n: usize);
+}
+extern "C" {
     pub fn ffdh_f(bin: *mut Bin, rect: *mut FRect, n: usize);
 }
 extern "C" {
     pub fn ffdh_i(bin: *mut Bin, rect: *mut IRect, n: usize);
+}
+extern "C" {
+    pub fn nfdh_f(bin: *mut Bin, rect: *mut FRect, n: usize);
+}
+extern "C" {
+    pub fn nfdh_i(bin: *mut Bin, rect: *mut IRect, n: usize);
+}
+extern "C" {
+    pub fn wfdh_f(bin: *mut Bin, rect: *mut FRect, n: usize);
+}
+extern "C" {
+    pub fn wfdh_i(bin: *mut Bin, rect: *mut IRect, n: usize);
 }
