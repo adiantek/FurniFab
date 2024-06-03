@@ -91,7 +91,19 @@ This tab is used to manage furniture production tasks parameters. It allows you 
 
 ## Supply
 
-TODO: Describe the Supply tab
+Supply tab is used to find maximum set of materials that can be transported from the source to destination with the minimum cost possible.
+It displays found solution as network flow on a graph.
+
+1. **Flow network** - This area displays flow network that shows the connections between the material source, the suppliers and the destination.
+2. **Algorithm parameters** - This area shows exact information about the graph that are taken into account by the algorithm.
+3. **Flow column** - This area shows the solution given by the algorithm.
+4. **Create** - This button is used to run the algorithm.
+
+<img src="Supply.png" alt="Application screenshot with guide">
+
+### Algorithm guidelines
+
+While setting graph parameters do not set cost values below zero. As this would represent negative costs for transport, the algorithm does not allow it.
 
 ## Cutting plan
 
