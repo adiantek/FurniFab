@@ -62,11 +62,11 @@ function remove(id: number) {
                 .join(', ')
             }}
           </td>
-          <td>
-            <button class="btn btn-danger btn-sm m-1 float-end" @click="() => remove(task.id)">
+          <td class="text-center">
+            <button class="btn btn-danger btn-sm m-1" @click="() => remove(task.id)">
               <TrashIconComponent />
             </button>
-            <button class="btn btn-success btn-sm m-1 float-end" @click="() => edit(task.id)">
+            <button class="btn btn-success btn-sm m-1" @click="() => edit(task.id)">
               <EditIconComponent />
             </button>
           </td>

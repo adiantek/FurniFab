@@ -237,6 +237,16 @@ const createPlan = async () => {
   }
 }
 
+const hoveredLine = ref<Line | undefined>();
+const mouseOver = (line: Line) => {
+  hoveredLine.value = line
+}
+const mouseOut = (line: Line) => {
+  if (hoveredLine.value === line) {
+    hoveredLine.value = undefined
+  }
+}
+
 </script>
 <style scoped>
 .flex-50 {
@@ -254,10 +264,23 @@ const createPlan = async () => {
 input {
   width: 100%;
   --bs-border-color: rgba(0, 0, 0, 0);
+  --bs-body-bg: none;
 }
 
 .shadow {
   filter: drop-shadow(0 0 0.75rem rgba(0, 0, 0));
+}
+
+.hoverable {
+  transition: opacity 0.3s;
+}
+
+.hovered-sth {
+  opacity: 0.25;
+}
+
+.hovered-line {
+  opacity: 1.0;
 }
 </style>
 <template>
@@ -320,23 +343,27 @@ input {
       <svg style="left: 0px; top: 0px" class="w-100 position-absolute" ref="svg" pointer-events="none">
         <template v-for="line of lines" :key="line.id">
           <template v-if="line.maxFlow > 0">
-            <line :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2" :style="`stroke:${line.color};stroke-width:2`" />
-            <polygon :points="`${line.x2},${line.y2} ${line.x2 - 10},${line.y2 - 10} ${line.x2 - 10},${line.y2 + 10}`"
-              :style="`fill:${line.color}`" :transform="`rotate(${line.angle} ${line.x2} ${line.y2})`" />
-            <text class="shadow" :x="(line.x1 + line.x2) / 2" :y="(line.y1 + line.y2) / 2" style="fill:white"
-              dominant-baseline="ideographic" text-anchor="middle"
-              :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`">Przepływ: {{
-                line.flow ?? "-" }} / {{ line.maxFlow }}</text>
-            <text class="shadow" :x="(line.x1 + line.x2) / 2" :y="(line.y1 + line.y2) / 2" style="fill:white"
-              dominant-baseline="hanging" text-anchor="middle"
-              :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`">Koszt: {{
-                line.cost }}</text>
+            <g class="hoverable"
+              :class="{ 'hovered-line': hoveredLine === line, 'hovered-sth': hoveredLine !== undefined && hoveredLine.maxFlow > 0 }">
+              <line :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2"
+                :style="`stroke:${line.color};stroke-width:2`" />
+              <polygon :points="`${line.x2},${line.y2} ${line.x2 - 10},${line.y2 - 10} ${line.x2 - 10},${line.y2 + 10}`"
+                :style="`fill:${line.color}`" :transform="`rotate(${line.angle} ${line.x2} ${line.y2})`" />
+              <text class="shadow" :x="(line.x1 + line.x2) / 2" :y="(line.y1 + line.y2) / 2" style="fill:white"
+                dominant-baseline="ideographic" text-anchor="middle"
+                :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`">Przepływ: {{
+                  line.flow ?? "-" }} / {{ line.maxFlow }}</text>
+              <text class="shadow" :x="(line.x1 + line.x2) / 2" :y="(line.y1 + line.y2) / 2" style="fill:white"
+                dominant-baseline="hanging" text-anchor="middle"
+                :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`">Koszt: {{
+                  line.cost }}</text>
+            </g>
           </template>
         </template>
       </svg>
     </div>
     <div class="overflow-auto flex-50">
-      <b-table-simple small bordered>
+      <b-table-simple small bordered hover>
         <b-thead>
           <b-tr class="text-center">
             <b-th>Skąd</b-th>
@@ -347,7 +374,7 @@ input {
           </b-tr>
         </b-thead>
         <b-tbody>
-          <b-tr v-for="line of lines" :key="line.id">
+          <b-tr v-for="line of lines" :key="line.id" @mouseover="mouseOver(line)" @mouseout="mouseOut(line)">
             <b-td class="p-0"><b-form-input v-model="names[line.p1]" size="sm" /></b-td>
             <b-td class="p-0"><b-form-input v-model="names[line.p2]" size="sm" /></b-td>
             <b-td class="p-0"><b-form-input type="number" v-model.number="line.cost" size="sm"

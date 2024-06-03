@@ -98,33 +98,33 @@ async function schedule() {
 <template>
   <h4 v-if="!!notScheduledTasks.length" class="m-3">Zadania bez uszeregowania:</h4>
   <h4 v-else class="m-3">Wszystkie zadania są uszeregowane.</h4>
-  <div v-if="!!notScheduledTasks.length" class="d-flex overflow-auto min-px-100 p-0 border w-100 m-2">
-    <table class="table table-dark table-bordered m-0">
-      <thead>
-        <tr>
-          <th>Id</th>
-          <th>Nazwa</th>
-          <th>Czas wykonania</th>
-          <th>Waga</th>
-          <th>Konflikty</th>
-        </tr>
-      </thead>
-      <tbody class="scrollable">
-        <tr v-for="task in notScheduledTasks" :key="task.name">
-          <td>{{ task.id }}</td>
-          <td>{{ task.name }}</td>
-          <td>{{ task.cuttingInfo.processTime }} minut</td>
-          <td>{{ task.cuttingInfo.weight }}</td>
-          <td>
+  <div v-if="!!notScheduledTasks.length" class="d-flex overflow-auto min-px-100 p-0 border w-100 my-2">
+    <b-table-simple class="m-0" small bordered hover>
+      <b-thead class="text-center">
+        <b-tr>
+          <b-th>Id</b-th>
+          <b-th>Nazwa</b-th>
+          <b-th>Czas wykonania</b-th>
+          <b-th>Waga</b-th>
+          <b-th>Konflikty</b-th>
+        </b-tr>
+      </b-thead>
+      <b-tbody>
+        <b-tr v-for="task in notScheduledTasks" :key="task.id">
+          <b-td>{{ task.id }}</b-td>
+          <b-td>{{ task.name }}</b-td>
+          <b-td>{{ task.cuttingInfo.processTime }} minut</b-td>
+          <b-td>{{ task.cuttingInfo.weight }}</b-td>
+          <b-td>
             {{
               task.cuttingInfo.conflicts
                 .map((conflictIndex) => getTask(conflictIndex)?.name)
                 .join(', ')
             }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </b-td>
+        </b-tr>
+      </b-tbody>
+    </b-table-simple>
   </div>
 
   <div class="card p-2">
