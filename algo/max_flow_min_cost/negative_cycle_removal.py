@@ -1,11 +1,10 @@
-def read_graph(file_name):
-    file = open(file_name)
-    f = file.readlines()
+def read_graph(file):
+    
     graph = dict()
     list_of_edges = []
-    nodes = [i + 1 for i in range(len(f))]
+    nodes = [i + 1 for i in range(len(file))]
 
-    for line in f:
+    for line in file:
         line_split = line.split()
         edges = dict()
         for i in range(1, len(line_split)):
@@ -18,7 +17,6 @@ def read_graph(file_name):
                 edges[i] = [0, 0, 0]
         graph[int((line_split[0])[:-1])] = edges
 
-    file.close()
     return graph, list_of_edges, nodes
 
 def bellman_ford(graph, list_of_edges, nodes, number_of_all_nodes, starting_node):
@@ -190,14 +188,10 @@ def start(file):
     graph, list_of_edges, nodes = read_graph(file)
     s = min(nodes)
     t = max(nodes)
-    print(graph)
-    print(list_of_edges)
 
     max_flow = ford_fulkerson(s, t, nodes, list_of_edges, graph)
-    print('Maksymalny przepływ na zadanym grafie: ', max_flow)
 
     cost = flow_cost(graph, list_of_edges)
-    print('Koszt przepływu: ', cost)
 
     residual_graph, residual_list_of_edges = create_residual_graph(graph, list_of_edges, nodes)
     residual_list_of_edges.sort()
@@ -209,16 +203,26 @@ def start(file):
 
         graph = adjust_graph(graph, negative_cycle, list_of_edges, minimum_augment)
 
+        last_cost = cost
+
         cost = flow_cost(graph, list_of_edges)
-        print('Znaleziono ujemny cykl. Mniejszy koszt przepływu: ', cost)
 
-        residual_graph, residual_list_of_edges = create_residual_graph(graph, list_of_edges, nodes)
-        residual_list_of_edges.sort()
+        if last_cost > cost:
 
-        negative_cycle = check_all_cohesion_components(residual_graph, residual_list_of_edges, nodes)
-        negative_cycle.reverse()
+            residual_graph, residual_list_of_edges = create_residual_graph(graph, list_of_edges, nodes)
+            residual_list_of_edges.sort()
+
+            negative_cycle = check_all_cohesion_components(residual_graph, residual_list_of_edges, nodes)
+            negative_cycle.reverse()
+        else:
+            negative_cycle = []
 
     return graph, max_flow, cost
 
 if __name__ == '__main__':
-    graph, maximum_flow, minimum_cost = start("file_negative_cycle_x2.txt")
+
+    file = open("max_flow_min_cost/file_negative_cycle_x1.txt")
+    f = file.readlines()
+    file.close()
+
+    graph, maximum_flow, minimum_cost = start(f)
