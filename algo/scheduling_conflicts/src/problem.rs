@@ -11,12 +11,12 @@ pub struct Task {
 }
 
 /// A conflict between two tasks described by their indices.
-#[derive(Clone, Copy, Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 struct Conflict(usize, usize);
 
 /// A conflict graph. Contains an edge for every pair of tasks that conflict.
-#[derive(Clone, Debug, Deserialize)]
-#[serde(from = "Vec<Conflict>")]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(from = "Vec<Conflict>", into = "Vec<Conflict>")]
 pub struct ConflictGraph {
     edges: Vec<HashSet<usize>>,
 }
@@ -55,9 +55,25 @@ impl From<Vec<Conflict>> for ConflictGraph {
     }
 }
 
+impl From<ConflictGraph> for Vec<Conflict> {
+    fn from(conflicts: ConflictGraph) -> Self {
+        let mut result = Vec::new();
+
+        for (from_vertex, adjacent_vertices) in conflicts.edges.into_iter().enumerate() {
+            for to_vertex in adjacent_vertices {
+                if to_vertex > from_vertex {
+                    result.push(Conflict(from_vertex, to_vertex));
+                }
+            }
+        }
+
+        result
+    }
+}
+
 /// An instance of the scheduling problem.
 #[non_exhaustive]
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Instance {
     pub processors: usize,
     pub deadline: u64,

@@ -184,8 +184,8 @@ def flow_cost(graph, list_of_edges):
             cost += used_capacity * edge_cost
     return cost
 
-def start(file):
-    graph, list_of_edges, nodes = read_graph(file)
+def start(file_lines):
+    graph, list_of_edges, nodes = read_graph(file_lines)
     s = min(nodes)
     t = max(nodes)
 

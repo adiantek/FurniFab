@@ -54,8 +54,9 @@ def Horn(J):
     t1 = min(task[0] for task in J)
 
     A = set()
+    k=0
     while J or A:
-
+        k=k+1
         A |= {task for task in J if task[0] <= t1}
         J -= A
 
@@ -71,19 +72,20 @@ def Horn(J):
                 if a not in order:
                     order =NEH(order, a)#JohnsonRule(A)
             task = order[0]
-            order.pop(0)
             l = min(task[1], t2 - t1)
             add_to_schedule(task, t1, l)
 
 
-            if task[1] <= l:
-                A.remove(task)
-            else:
 
-                A = {(r, t - l, d, n) if n == task[3] else (r, t, d, n) for (r, t, d, n) in A}
             if task[1]==l:
-
+                A.remove(task)
+                order.pop(0)
                 add_to_schedule2(task, l+t1, task[2])
+            else:
+               # order2 = [(r, t - l, d, n) if n == task[3] else (r, t, d, n) for (r, t, d, n) in A]
+                order.pop(0)
+                order = NEH(order, (task[0], task[1]-l, task[2], task[3]))
+                A = {(r, t - l, d, n) if n == task[3] else (r, t, d, n) for (r, t, d, n) in A}
             t1 += l
         else:
             t1 = t2
@@ -101,6 +103,7 @@ def run_algorithm(input_data):
         schedule[k] = []
         schedule2[k] = []
         k=k+1
+    data = sorted(data, key=lambda x: x[1]+x[2], reverse=True)
     Horn(set(data))
     res = {}
     res['result_1'] = schedule
@@ -121,8 +124,10 @@ if __name__ == '__main__':
             schedule[k] = []
             schedule2[k] = []
             k = k + 1
-
+    tasks = sorted(tasks, key=lambda x: x[1]+x[2], reverse=True)
     Horn(set(tasks))
+    print("Rozwiązanie: ")
     print(schedule)
     print(schedule2)
+    print(t_second_machine)
 #print(run_algorithm(r))

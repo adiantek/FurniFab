@@ -1,11 +1,7 @@
 import { invoke } from '@tauri-apps/api'
-import type { BusinessTask } from '@/composables/TaskComposable'
-
-export interface CommandOutput {
-  stdout: string
-  stderr: string
-  error: string[]
-}
+import type { BusinessTask, RectInfo } from '@/composables/TaskComposable'
+import { useToast } from 'bootstrap-vue-next'
+import type { Line } from '@/views/DeliveriesView.vue'
 
 export enum ConflictAlgorithm {
   List = 'List',
@@ -62,24 +58,44 @@ export interface FlowSchedule {
   lacquering: FlowScheduleInfo[][]
 }
 
-export function runExecutable(exec: string, stdin: string): Promise<CommandOutput> {
-  return invoke('run_resource', { exec, stdin })
-}
-
 export async function scheduleConflicts(
   instance: Instance,
   algorithm: ConflictAlgorithm
 ): Promise<Schedule> {
-  const scheduleString = await invoke('run_scheduling_conflicts', { instance, algorithm })
+  const scheduleString = await invoke('run_scheduling_conflicts', { instance, algorithm }).catch(
+    onError
+  )
   return await JSON.parse(scheduleString as string)
 }
 
 export function scheduleFlow(tasks: FlowTask[], script: FlowScript): Promise<FlowSchedule> {
-  return invoke('run_flow', { tasks, script })
+  return invoke('run_flow', { tasks, script }).catch(onError) as Promise<FlowSchedule>
 }
 
-export function exportApi(data: BusinessTask[]): Promise<void> {
-  return invoke('export', { data: JSON.stringify(data) })
+export interface Edge {
+  to: number
+  capacity: number
+  used_capacity?: number
+  cost: number
+}
+
+export function findMaxFlowMinCost(edges: Edge[][]): Promise<[Edge[][], number, number]> {
+  return invoke('run_max_flow_min_cost', { edges }).catch(onError) as Promise<
+    [Edge[][], number, number]
+  >
+}
+
+export interface ExportData {
+  businessTasks: BusinessTask[]
+  boardSize: [number, number]
+  lines: Line[]
+  deliveries: number[]
+  transports: number[]
+  names: Record<string, string>
+}
+
+export function exportApi(data: ExportData): Promise<void> {
+  return invoke('export', { data: JSON.stringify(data) }).catch(onError) as Promise<void>
 }
 
 function parseDates(task: BusinessTask): BusinessTask {
@@ -94,14 +110,66 @@ function parseDates(task: BusinessTask): BusinessTask {
   return task
 }
 
-export async function importApi(): Promise<BusinessTask[]> {
-  return JSON.parse(await invoke('import')).map(parseDates)
+export enum BinPackingAlgorithm {
+  FFDH = 'FFDH'
 }
 
-export function saveApi(data: BusinessTask[]): Promise<void> {
-  return invoke('save_data', { data: JSON.stringify(data) })
+export interface Bin {
+  id: number
+  w: number
+  h: number
 }
 
-export async function loadApi(): Promise<BusinessTask[]> {
-  return JSON.parse(await invoke('load_data')).map(parseDates)
+export function binPacking(
+  bin: Bin,
+  rects: RectInfo[],
+  algorithm: BinPackingAlgorithm
+): Promise<RectInfo[]> {
+  return invoke('run_bin_packing', { bin, rects, algorithm })
+}
+
+export async function importApi(): Promise<ExportData> {
+  const data: ExportData | undefined = JSON.parse((await invoke('import').catch(onError)) as string)
+
+  if (data) {
+    data.businessTasks = data.businessTasks.map(parseDates)
+  }
+
+  return (
+    data || {
+      businessTasks: [],
+      boardSize: [100, 100],
+      names: {
+        startPoint: 'Tartak',
+        endPoint: 'Fabryka'
+      },
+      lines: [],
+      deliveries: [],
+      transports: []
+    }
+  )
+}
+
+export function saveApi(data: ExportData): Promise<void> {
+  return invoke('save_data', { data: JSON.stringify(data) }).catch(onError) as Promise<void>
+}
+
+export async function loadApi(): Promise<ExportData | undefined> {
+  const data: ExportData | undefined = JSON.parse(
+    (await invoke('load_data').catch(onError)) as string
+  )
+  if (data) {
+    data.businessTasks = data.businessTasks.map(parseDates)
+  }
+  return data
+}
+
+function onError(error: any) {
+  const { show } = useToast()
+  show?.(error.toString(), {
+    title: 'Błąd w przetwarzaniu',
+    value: 5000,
+    variant: 'danger',
+    pos: 'bottom-right'
+  })
 }

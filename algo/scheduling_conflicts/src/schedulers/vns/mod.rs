@@ -1,9 +1,10 @@
-mod init;
-mod neighborhoods;
+use rand::Rng;
 
 use crate::util::ScheduleBuilder;
 use crate::{Instance, Schedule};
-use rand::Rng;
+
+mod init;
+mod neighborhoods;
 
 fn neighborhood_search(mut schedule: ScheduleBuilder) -> ScheduleBuilder {
     let factories = [
@@ -55,21 +56,15 @@ pub fn vns(instance: &Instance) -> Schedule {
 
             new_schedule.reorganize_schedule(|machines, tardy_tasks| {
                 let mut machine_fixings = Vec::with_capacity(2);
-                let mut tardy_fixings = Vec::with_capacity(1);
 
                 match task_machine {
                     Some(machine) => {
-                        if let Some(id) = machines[machine].iter().position(|&id| id == task) {
-                            machine_fixings.push((machine, id));
+                        if let Some(pos) = machines[machine].iter().position(|&id| id == task) {
+                            machine_fixings.push((machine, pos));
                         }
                         machines[machine].retain(|&id| id != task);
                     }
-                    None => {
-                        if let Some(id) = tardy_tasks.iter().position(|&id| id == task) {
-                            tardy_fixings.push(id);
-                        }
-                        tardy_tasks.retain(|&id| id != task);
-                    }
+                    None => tardy_tasks.retain(|&id| id != task),
                 }
 
                 let new_machine = rng.gen_range(0..instance.processors);
@@ -81,7 +76,7 @@ pub fn vns(instance: &Instance) -> Schedule {
                     None => machine_fixings.push((new_machine, new_position)),
                 }
 
-                (machine_fixings, tardy_fixings)
+                (machine_fixings, vec![])
             });
         }
 
@@ -95,4 +90,15 @@ pub fn vns(instance: &Instance) -> Schedule {
     }
 
     schedule.into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::schedulers::test_utils::run_test_files;
+
+    #[test]
+    fn test_vns() {
+        run_test_files(vns).expect("Error running tests")
+    }
 }

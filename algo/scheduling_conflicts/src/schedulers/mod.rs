@@ -18,3 +18,21 @@ impl<T: FnOnce(&Instance) -> Schedule> Scheduler for T {
         self(instance)
     }
 }
+
+#[cfg(test)]
+mod test_utils {
+    use super::*;
+    use std::error::Error;
+
+    pub fn run_test_files<T: Scheduler + Clone>(scheduler: T) -> Result<(), Box<dyn Error>> {
+        for file in std::fs::read_dir("src/test")? {
+            let mut reader = std::io::BufReader::new(std::fs::File::open(file?.path())?);
+            let instance = crate::serialization::deserialize(&mut reader)?;
+            if !scheduler.clone().schedule(&instance).verify() {
+                panic!("Invalid schedule created");
+            }
+        }
+
+        Ok(())
+    }
+}

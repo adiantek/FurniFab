@@ -235,3 +235,14 @@ pub fn tresoldi(instance: &Instance) -> Schedule {
 
     best_solution.into()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::schedulers::test_utils::run_test_files;
+
+    #[test]
+    fn test_tresoldi() {
+        run_test_files(tresoldi).expect("Error running tests")
+    }
+}

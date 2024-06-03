@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type BusinessTask, getTask, useBusinessTasks } from '@/composables/TaskComposable'
-import { ref } from 'vue'
+import { getTask, useBusinessTasks, type BusinessTask } from '@/composables/TaskComposable';
+import { ref } from 'vue';
 
 const businessTasks = useBusinessTasks()
 
@@ -16,7 +16,10 @@ function remove(id: number) {
   const task = getTask(id)!
 
   for (const conflictId of task.cuttingInfo.conflicts) {
-    const conflictTask = getTask(conflictId)!
+    const conflictTask = getTask(conflictId)
+    if (conflictTask === undefined) {
+      continue
+    }
     conflictTask.cuttingInfo.conflicts = conflictTask.cuttingInfo.conflicts.filter(
       (conflictId) => conflictId !== id
     )
@@ -59,11 +62,11 @@ function remove(id: number) {
                 .join(', ')
             }}
           </td>
-          <td>
-            <button class="btn btn-danger btn-sm m-1 float-end" @click="() => remove(task.id)">
+          <td class="text-center">
+            <button class="btn btn-danger btn-sm m-1" @click="() => remove(task.id)">
               <TrashIconComponent />
             </button>
-            <button class="btn btn-success btn-sm m-1 float-end" @click="() => edit(task.id)">
+            <button class="btn btn-success btn-sm m-1" @click="() => edit(task.id)">
               <EditIconComponent />
             </button>
           </td>

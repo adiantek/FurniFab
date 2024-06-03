@@ -1,82 +1,103 @@
 # FurniFab
 
-This template should help get you started developing with Vue 3 in Vite.
+![build](https://github.com/adiantek/FurniFab/actions/workflows/build.yml/badge.svg)
+![build](https://github.com/adiantek/FurniFab/actions/workflows/eslint.yml/badge.svg)
+![build](https://github.com/adiantek/FurniFab/actions/workflows/rust-clippy.yml/badge.svg)
 
-## Recommended IDE Setup
+FurniFab is a key tool for furniture manufacturers,
+enabling significant improvements in various stages of production through the use of advanced software.
+This technology guarantees higher quality and production efficiency,
+which would be unattainable if relying solely on manual labor.
+The software is specifically configured for each stage of production,
+resulting in increased throughput and better work outcomes.
+To achieve that result, it uses various algorithms from the literature and original.
+This combination of algorithms produces results that are better than human-made results.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and
-disable
-Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## Features
 
-## Type Support for `.vue` Imports in TS
+- **Optimizes Supply Chains**: Founds the best solution for the needed number of materials and given suppliers.
+- **Better Material Efficiency**: Reduces the number of materials that are wasted in the process.
+- **Improved Efficiency**: Enhances productivity at various stages of furniture production.
+- **Seamless Integration**: Facilitates communication and collaboration between departments by integrating different production stages.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for
-type checking. In editors, we
-need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin)
-to make the TypeScript language service aware of `.vue` types.
+## Benefits
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented
-a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more
-performant. You can enable it by the following steps:
+- **Enhanced Throughput**: Tailored configurations for each production stage lead to improved throughput.
+- **Better Results**: Achieves superior work results by optimizing each step of the production process.
+- **Increased Collaboration**: Integrates various production phases, improving interdepartmental communication and cooperation.
+- **Benchmarking Performance**: Sets a new standard for quality and efficiency in the furniture manufacturing industry.
 
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+## Download Installers
 
-## Customize configuration
+Installer files for all supported platforms can be downloaded at [https://adiantek.github.io/FurniFab/](https://adiantek.github.io/FurniFab/).
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+## User manual
 
-## Project Setup
+The user manual is available at [USER MANUAL](.github/USER_MANUAL.md).
 
-```sh
-npm install
-```
+## Building
 
-### Compile and Hot-Reload for Development
+### Prerequisites
 
-```sh
-npm run dev
-```
+Ensure you have the following installed:
 
-### Type-Check, Compile and Minify for Production
+- [Python](https://www.python.org/) >= 3.10
+- [Rust](https://www.rust-lang.org/) >= 1.77
+- [Node](https://nodejs.org/) >= 20.12
+- Latest Tauri CLI
 
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
-
-## Tauri Application
-
-To run as tauri app, you need to have rust installed and tauri cli installed.
-
-To install tauri cli run:
-
-```sh
+Tauri CLI can be installed with:
+```bash
 cargo install tauri-cli
 ```
 
-Then to run a development version of app run:
-
-```sh
-cargo tauri dev
+To build and sign packages, you need to generate a key pair:
+```bash
+cargo tauri signer generate
 ```
+The above line will generate instructions on how to provide a private key during the build phase. The public key must be replaced in `src-tauri/tauri.conf.json`.
 
-Building tauri requires python backend to be built first. Python backend reqires python 3 and pyinstaller installed. To
-build app run:
+### Installation
 
-```sh
-cargo tauri build
-```
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/adiantek/FurniFab.git
+    ```
+2. Navigate to the project directory:
+    ```bash
+    cd furnifab
+    ```
+3. Install the required dependencies:
+    ```bash
+    npm install
+    ```
+4. Build project dev version:
+   ```bash
+   cargo tauri dev
+   ```
+5. Build installers, update packages:
+   ```bash
+   cargo tauri build
+   ```
+
+This repository contains a bundled Python interpreter embedded in the application when building installers.
+The repository also contains compiled static libraries for all supported platforms of the C part of the project.
+
+### More
+
+For more details on building the project and architecture details see the [BUILDING](.github/BUILDING.md) file.
+
+### Authors
+
+[Paulina Szyszko](https://github.com/Shatevar) \
+[Natalia Wasiak](https://github.com/natwas00) \
+[Adrian Antkowiak](https://github.com/adiantek) \
+[Bartosz Wawrzyniak](https://github.com/SamPanDonte)
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For more information or any inquiries, please contact us at [contact.vernite@gmail.com](mailto:contact.vernite@gmail.com).

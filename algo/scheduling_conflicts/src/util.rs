@@ -201,11 +201,7 @@ impl<'a> ScheduleBuilder<'a> {
             }
         }
 
-        self.machines[machine] = self.machines[machine]
-            .iter()
-            .filter(|&&id| self.schedule.get_schedule(id).is_some())
-            .copied()
-            .collect();
+        self.machines[machine].retain(|&id| self.schedule.get_schedule(id).is_some());
     }
 
     fn fix_tardy(&mut self) {

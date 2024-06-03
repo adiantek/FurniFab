@@ -27,7 +27,7 @@ def add_to_schedule2(task, start, duration):
 def create_FS(p1, p2, mean1, mean2):
     FS = FuzzySystem()
 
-    # Zamodelowanie zmiennej lingwistycznej "liczba samochodow"
+
     M1_Very_Short = TrapezoidFuzzySet(0, 0, mean1 * 0.5, mean1 * 0.75, term="Very_Short")
     M1_Short = TriangleFuzzySet(mean1 * 0.5, mean1 * 0.75, mean1, term="Short")
     M1_Medium = TriangleFuzzySet(mean1 * 0.75, mean1, mean1 * 1.25, term="Medium")
@@ -44,7 +44,7 @@ def create_FS(p1, p2, mean1, mean2):
 
     FS.add_linguistic_variable("M2", LinguisticVariable([M2_Very_Short, M2_Short, M2_Medium, M2_Long, M2_Very_Long], universe_of_discourse=[0, p2]))
 
-    # Zamodelowanie sterujacej zmiennej lingwistycznej "priorytet"
+
     P0 = TrapezoidFuzzySet(0, 0, 0.1, 0.2, term="very_low")
     P1 = TriangleFuzzySet(0.1, 0.3, 0.5, term="low")
     P2 = TriangleFuzzySet(0.4, 0.6, 0.8, term="medium")
@@ -53,7 +53,6 @@ def create_FS(p1, p2, mean1, mean2):
 
     FS.add_linguistic_variable("priority", LinguisticVariable([P0,P1, P2, P3, P4], universe_of_discourse=[0, 1]))
 
-    # Zdefiniowanie zestawu regul
     FS.add_rules([
 
         "IF (M1 IS Very_Short) AND (M2 IS Very_Long) THEN (priority IS very_high)",
@@ -109,17 +108,19 @@ def create_FS(p1, p2, mean1, mean2):
 
     ])
 
-    # Zwraca system rozmyty, ktory moze byc przypisany do konkretnego kierunku ruchu
     return FS
 
 def Horn(J, fs):
     order = []
+    k=0
+
+
+
     global t_second_machine
     t1 = min(task[0] for task in J)
-
     A = set()
     while J or A:
-
+        k = k + 1
         A |= {task for task in J if task[0] <= t1}
         J -= A
 
@@ -131,6 +132,7 @@ def Horn(J, fs):
 
 
         if A:
+            print("A",A)
             priority = 0
             for a in A:
                     fs.set_variable("M1", a[1])
@@ -201,5 +203,6 @@ if __name__ == '__main__':
     print(p2)
     fs = create_FS(p1,p2, p1 // len(all_tasks), p2 // len(all_tasks))
     Horn(set(all_tasks), fs)
+    print("Rozwiązanie:")
     print(schedule)
     print(schedule2)

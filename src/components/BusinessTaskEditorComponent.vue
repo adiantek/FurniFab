@@ -38,52 +38,50 @@ watch(
 
 <template>
   <div v-if="model" class="p-1">
-    <div class="input-group mb-2">
-      <label class="input-group-text">Nazwa</label>
-      <input v-model="model.name" type="text" class="form-control" minlength="1" />
-    </div>
+    <b-form-floating-label label="Nazwa" class="mb-3">
+      <b-form-input v-model="model.name" trim placeholder="" />
+    </b-form-floating-label>
 
-    <div v-if="model.cuttingInfo" class="form-group card p-3 mb-2">
-      <span class="card-title">Informacje o wycinaniu: </span>
+    <b-card v-if="model.rectInfo" header="Informacje o kształcie elementu" class="mb-3">
 
-      <div class="input-group mb-2">
-        <label class="input-group-text">Czas trwania</label>
-        <input v-model="model.cuttingInfo.processTime" type="number" class="form-control" min="1" />
-      </div>
+      <b-form-floating-label label="Szerokość" class="mb-3">
+        <b-form-input type="number" v-model.number="model.rectInfo.w" placeholder="" />
+      </b-form-floating-label>
 
-      <div class="input-group mb-2">
-        <label class="input-group-text">Priorytet</label>
-        <input v-model="model.cuttingInfo.weight" type="number" class="form-control" min="0" />
-      </div>
+      <b-form-floating-label label="Wysokość" class="mb-3">
+        <b-form-input type="number" v-model.number="model.rectInfo.h" placeholder="" />
+      </b-form-floating-label>
+    
+    </b-card>
 
-      <div class="input-group">
-        <label class="input-group-text">Konflikty</label>
-        <BFormSelect v-model="model.cuttingInfo.conflicts" :options="options" multiple />
-      </div>
-    </div>
+    <b-card v-if="model.cuttingInfo" header="Informacje o wycinaniu" class="mb-3">
 
-    <div v-if="model.flowInfo" class="form-group card p-3">
-      <span class="card-title">Informacje o lakierowaniu i szlifowaniu: </span>
+      <b-form-floating-label label="Czas trwania" class="mb-3">
+        <b-form-input type="number" v-model.number="model.cuttingInfo.processTime" placeholder="" />
+      </b-form-floating-label>
 
-      <div class="input-group mb-2">
-        <label class="input-group-text">Czas szlifowania</label>
-        <input
-          v-model="model.flowInfo.grindingProcessTime"
-          type="number"
-          class="form-control"
-          min="1"
-        />
-      </div>
+      <b-form-floating-label label="Priorytet" class="mb-3">
+        <b-form-input type="number" v-model.number="model.cuttingInfo.weight" placeholder="" />
+      </b-form-floating-label>
 
-      <div class="input-group">
-        <label class="input-group-text">Czas lakierowania</label>
-        <input
-          v-model="model.flowInfo.lacqueringProcessTime"
-          type="number"
-          class="form-control"
-          min="1"
-        />
-      </div>
-    </div>
+      <b-input-group>
+        <label class="input-group-text">Konflikty:</label>
+        <b-form-select v-model="model.cuttingInfo.conflicts" :options="options" multiple />
+      </b-input-group>
+
+    </b-card>
+    
+    <b-card v-if="model.flowInfo" header="Informacje o lakierowaniu i szlifowaniu" class="mb-3">
+
+      <b-form-floating-label label="Czas szlifowania" class="mb-3">
+        <b-form-input type="number" v-model.number="model.flowInfo.grindingProcessTime" placeholder="" />
+      </b-form-floating-label>
+
+      <b-form-floating-label label="Czas lakierowania" class="mb-3">
+        <b-form-input type="number" v-model.number="model.flowInfo.lacqueringProcessTime" placeholder="" />
+      </b-form-floating-label>
+
+    </b-card>
+
   </div>
 </template>
