@@ -1,30 +1,25 @@
-import { type Ref, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { save } from '@/composables/TaskComposable'
+import type { Line } from '@/views/DeliveriesView.vue'
 
-export interface Supplier {
-  name: string
-  max_amount: number
-  costs: [string, number, number][]
+const lines = ref<Line[]>([])
+const deliveries = ref<number[]>([])
+const transports = ref<number[]>([])
+const names = ref<Record<string, string>>({
+  startPoint: 'Tartak',
+  endPoint: 'Fabryka'
+})
+
+export const useSuppliers = () => {
+  return {
+    lines,
+    deliveries,
+    transports,
+    names
+  }
 }
 
-const suppliers = ref<Supplier[]>([])
-
-watch(suppliers, save, { deep: true })
-
-export function useSuppliers(): Ref<Supplier[]> {
-  return suppliers
-}
-
-export type SupplyPlan = [{ supplier: string; supplies: [string, number][] }[], number, number]
-
-const supplyPlan = ref<SupplyPlan | undefined>()
-
-watch(supplyPlan, save, { deep: true })
-
-export function useSupplyPlan(): Ref<SupplyPlan | undefined> {
-  return supplyPlan
-}
-
-export function setSupplyPlan(plan: SupplyPlan): void {
-  supplyPlan.value = plan
-}
+watch(lines, save, { deep: true })
+watch(deliveries, save, { deep: true })
+watch(transports, save, { deep: true })
+watch(names, save, { deep: true })

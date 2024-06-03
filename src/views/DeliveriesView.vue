@@ -1,41 +1,29 @@
 <script setup lang="ts">
-import { findMaxFlowMinCost, type Edge } from '@/api';
-import { useSuppliers, useSupplyPlan } from '@/composables/SupplierComposable';
-import { useBusinessTasks } from '@/composables/TaskComposable';
-import { onMounted, onUnmounted, reactive, ref } from 'vue';
+import { findMaxFlowMinCost, type Edge } from '@/api'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { useSuppliers } from '@/composables/SupplierComposable'
 
-const suppliers = useSuppliers()
-const addCost = ref<[string, number, number]>(['', 0, 0])
-const supplyPlan = useSupplyPlan()
-const tasks = useBusinessTasks()
+export type Line = {
+  id: number
+  group: number
+  color: string
 
-type Line = {
-  id: number,
-  group: number,
-  color: string,
+  x1: number
+  y1: number
+  x2: number
+  y2: number
 
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
+  angle: number
 
-  angle: number,
+  p1: string
+  p2: string
 
-  p1: string,
-  p2: string,
-
-  cost: number,
-  flow?: number,
+  cost: number
+  flow?: number
   maxFlow: number
 }
 
-const lines = ref<Line[]>([])
-const deliveries = ref<number[]>([])
-const transports = ref<number[]>([])
-const names = reactive<Record<string, string>>({
-  startPoint: 'Tartak',
-  endPoint: 'Fabryka'
-})
+const { lines, deliveries, transports, names } = useSuppliers()
 
 const addLine = (p1: string, p2: string, group: number) => {
   lines.value.push({
@@ -73,7 +61,7 @@ const sortLines = () => {
 let deliveryCounter = 1
 const addDelivery = () => {
   const newPoint = deliveryCounter++
-  names[`delivery-${newPoint}`] = `Dostawca nr ${newPoint}`
+  names.value[`delivery-${newPoint}`] = `Dostawca nr ${newPoint}`
   deliveries.value.push(newPoint)
   addLine('startPoint', `delivery-${newPoint}`, 0)
   for (const transport of transports.value) {
@@ -85,7 +73,7 @@ const addDelivery = () => {
 let transportCounter = 1
 const addTransport = () => {
   const newPoint = transportCounter++
-  names[`transport-${newPoint}`] = `Transport nr ${newPoint}`
+  names.value[`transport-${newPoint}`] = `Transport nr ${newPoint}`
   transports.value.push(newPoint)
   for (const delivery of deliveries.value) {
     addLine(`delivery-${delivery}`, `transport-${newPoint}`, 1)
@@ -108,7 +96,7 @@ const updateSize = () => {
   svgElement.setAttribute('width', `${graphBB.width}px`)
   svgElement.setAttribute('height', `${graphBB.height}px`)
 
-  const cache = new Map<string, DOMRect>();
+  const cache = new Map<string, DOMRect>()
   for (const line of lines.value) {
     if (!cache.has(line.p1)) {
       const p1 = document.getElementById(line.p1)
@@ -136,7 +124,10 @@ const updateSize = () => {
     line.y1 = p1.y - svgBB.top + p1.height / 2
     line.x2 = p2.x - svgBB.left
     line.y2 = p2.y - svgBB.top + p2.height / 2
-    line.angle = (line.x2 == line.x1 ? 0 : Math.atan((line.y2 - line.y1) / (line.x2 - line.x1)) * 180 / Math.PI)
+    line.angle =
+      line.x2 == line.x1
+        ? 0
+        : (Math.atan((line.y2 - line.y1) / (line.x2 - line.x1)) * 180) / Math.PI
   }
 }
 
@@ -165,7 +156,7 @@ const deleteTransport = (transport: number) => {
     transports.value = transports.value.filter((t) => t !== transport)
     lines.value = lines.value.filter((line) => line.p2 !== `transport-${transport}`)
     lines.value = lines.value.filter((line) => line.p1 !== `transport-${transport}`)
-    delete names[`transport-${transport}`]
+    delete names.value[`transport-${transport}`]
     sortLines()
     deletingTransport.value = false
   }
@@ -175,7 +166,7 @@ const deleteDelivery = (delivery: number) => {
     deliveries.value = deliveries.value.filter((d) => d !== delivery)
     lines.value = lines.value.filter((line) => line.p1 !== `delivery-${delivery}`)
     lines.value = lines.value.filter((line) => line.p2 !== `delivery-${delivery}`)
-    delete names[`delivery-${delivery}`]
+    delete names.value[`delivery-${delivery}`]
     sortLines()
     deletingDelivery.value = false
   }
@@ -203,7 +194,7 @@ const createPlan = async () => {
   deletingDelivery.value = false
   creatingPlan.value = true
 
-  const edges: Edge[][] = [];
+  const edges: Edge[][] = []
   for (const line of lines.value) {
     if (line.maxFlow > 0) {
       const p1 = mapPoint(line.p1)
@@ -237,7 +228,7 @@ const createPlan = async () => {
   }
 }
 
-const hoveredLine = ref<Line | undefined>();
+const hoveredLine = ref<Line | undefined>()
 const mouseOver = (line: Line) => {
   hoveredLine.value = line
 }
@@ -246,7 +237,6 @@ const mouseOut = (line: Line) => {
     hoveredLine.value = undefined
   }
 }
-
 </script>
 <style scoped>
 .flex-50 {
@@ -280,7 +270,7 @@ input {
 }
 
 .hovered-line {
-  opacity: 1.0;
+  opacity: 1;
 }
 </style>
 <template>
@@ -288,75 +278,175 @@ input {
     <div class="w-100 overflow-auto position-relative flex-50">
       <b-row class="w-100 min-h-100" gutter-x="0" ref="graph">
         <b-col cols="3">
-          <b-card header="Tartak" class="h-100 border-danger mx-3" header-class="text-center text-bg-danger"
-            body-class="h4 d-flex flex-column align-items-center justify-content-around">
-            <b-badge variant="danger" class="text-wrap" pill="true" id="startPoint">{{ names['startPoint'] }} ({{
-              mapPoint(`startPoint`) }})</b-badge>
+          <b-card
+            header="Tartak"
+            class="h-100 border-danger mx-3"
+            header-class="text-center text-bg-danger"
+            body-class="h4 d-flex flex-column align-items-center justify-content-around"
+          >
+            <b-badge variant="danger" class="text-wrap" pill="true" id="startPoint"
+              >{{ names['startPoint'] }} ({{ mapPoint(`startPoint`) }})
+            </b-badge>
           </b-card>
         </b-col>
         <b-col cols="3">
-          <b-card header="Dostawcy" class="h-100 border-success mx-3" header-class="text-center text-bg-success"
+          <b-card
+            header="Dostawcy"
+            class="h-100 border-success mx-3"
+            header-class="text-center text-bg-success"
             body-class="h4 d-flex flex-column align-items-center justify-content-around"
-            footer-class="border-success text-center">
+            footer-class="border-success text-center"
+          >
             <template v-for="delivery of deliveries" :key="delivery.num">
-              <b-badge variant="success" class="text-wrap" :class="{ 'cursor-pointer': deletingDelivery }" pill="true"
-                :id="`delivery-${delivery}`" @click="deleteDelivery(delivery)">{{
-                  names[`delivery-${delivery}`] }} ({{ mapPoint(`delivery-${delivery}`) }})</b-badge>
+              <b-badge
+                variant="success"
+                class="text-wrap"
+                :class="{ 'cursor-pointer': deletingDelivery }"
+                pill="true"
+                :id="`delivery-${delivery}`"
+                @click="deleteDelivery(delivery)"
+                >{{ names[`delivery-${delivery}`] }} ({{ mapPoint(`delivery-${delivery}`) }})
+              </b-badge>
             </template>
             <template #footer>
-              <b-button class="mx-1" size="sm" variant="danger" v-if="deletingDelivery"
-                @click="deletingDelivery = false">Wybierz dostawcę</b-button>
-              <b-button class="mx-1" size="sm" variant="danger" v-else @click="deletingDelivery = true"
-                :disabled="creatingPlan">Usuń</b-button>
-              <b-button class="mx-1" size="sm" variant="success" @click="addDelivery"
-                :disabled="creatingPlan">Dodaj</b-button>
+              <b-button
+                class="mx-1"
+                size="sm"
+                variant="danger"
+                v-if="deletingDelivery"
+                @click="deletingDelivery = false"
+                >Wybierz dostawcę
+              </b-button>
+              <b-button
+                class="mx-1"
+                size="sm"
+                variant="danger"
+                v-else
+                @click="deletingDelivery = true"
+                :disabled="creatingPlan"
+                >Usuń
+              </b-button>
+              <b-button
+                class="mx-1"
+                size="sm"
+                variant="success"
+                @click="addDelivery"
+                :disabled="creatingPlan"
+                >Dodaj
+              </b-button>
             </template>
           </b-card>
         </b-col>
         <b-col cols="3">
-          <b-card header="Transport" class="h-100 border-info mx-3" header-class="text-center text-bg-info"
+          <b-card
+            header="Transport"
+            class="h-100 border-info mx-3"
+            header-class="text-center text-bg-info"
             body-class="h4 d-flex flex-column align-items-center justify-content-around"
-            footer-class="border-info text-center">
+            footer-class="border-info text-center"
+          >
             <template v-for="transport of transports" :key="transport.num">
-              <b-badge variant="info" class="text-wrap" :class="{ 'cursor-pointer': deletingTransport }" pill="true"
-                :id="`transport-${transport}`" @click="deleteTransport(transport)">{{
-                  names[`transport-${transport}`] }} ({{ mapPoint(`transport-${transport}`) }})</b-badge>
+              <b-badge
+                variant="info"
+                class="text-wrap"
+                :class="{ 'cursor-pointer': deletingTransport }"
+                pill="true"
+                :id="`transport-${transport}`"
+                @click="deleteTransport(transport)"
+                >{{ names[`transport-${transport}`] }} ({{ mapPoint(`transport-${transport}`) }})
+              </b-badge>
             </template>
             <template #footer>
-              <b-button class="mx-1" size="sm" variant="danger" v-if="deletingTransport"
-                @click="deletingTransport = false">Wybierz transport</b-button>
-              <b-button class="mx-1" size="sm" variant="danger" v-else @click="deletingTransport = true"
-                :disabled="creatingPlan">Usuń</b-button>
-              <b-button class="mx-1" size="sm" variant="info" @click="addTransport"
-                :disabled="creatingPlan">Dodaj</b-button>
+              <b-button
+                class="mx-1"
+                size="sm"
+                variant="danger"
+                v-if="deletingTransport"
+                @click="deletingTransport = false"
+                >Wybierz transport
+              </b-button>
+              <b-button
+                class="mx-1"
+                size="sm"
+                variant="danger"
+                v-else
+                @click="deletingTransport = true"
+                :disabled="creatingPlan"
+                >Usuń
+              </b-button>
+              <b-button
+                class="mx-1"
+                size="sm"
+                variant="info"
+                @click="addTransport"
+                :disabled="creatingPlan"
+                >Dodaj
+              </b-button>
             </template>
           </b-card>
         </b-col>
         <b-col cols="3">
-          <b-card header="Fabryka" class="h-100 border-primary mx-3" header-class="text-center text-bg-primary"
-            body-class="h4 d-flex flex-column align-items-center justify-content-around">
-            <b-badge variant="primary" class="text-wrap" pill="true" id="endPoint">Fabryka ({{ mapPoint(`endPoint`)
-              }})</b-badge>
+          <b-card
+            header="Fabryka"
+            class="h-100 border-primary mx-3"
+            header-class="text-center text-bg-primary"
+            body-class="h4 d-flex flex-column align-items-center justify-content-around"
+          >
+            <b-badge variant="primary" class="text-wrap" pill="true" id="endPoint"
+              >Fabryka ({{ mapPoint(`endPoint`) }})
+            </b-badge>
           </b-card>
         </b-col>
       </b-row>
-      <svg style="left: 0px; top: 0px" class="w-100 position-absolute" ref="svg" pointer-events="none">
+      <svg
+        style="left: 0px; top: 0px"
+        class="w-100 position-absolute"
+        ref="svg"
+        pointer-events="none"
+      >
         <template v-for="line of lines" :key="line.id">
           <template v-if="line.maxFlow > 0">
-            <g class="hoverable"
-              :class="{ 'hovered-line': hoveredLine === line, 'hovered-sth': hoveredLine !== undefined && hoveredLine.maxFlow > 0 }">
-              <line :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2"
-                :style="`stroke:${line.color};stroke-width:2`" />
-              <polygon :points="`${line.x2},${line.y2} ${line.x2 - 10},${line.y2 - 10} ${line.x2 - 10},${line.y2 + 10}`"
-                :style="`fill:${line.color}`" :transform="`rotate(${line.angle} ${line.x2} ${line.y2})`" />
-              <text class="shadow" :x="(line.x1 + line.x2) / 2" :y="(line.y1 + line.y2) / 2" style="fill:white"
-                dominant-baseline="ideographic" text-anchor="middle"
-                :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`">Przepływ: {{
-                  line.flow ?? "-" }} / {{ line.maxFlow }}</text>
-              <text class="shadow" :x="(line.x1 + line.x2) / 2" :y="(line.y1 + line.y2) / 2" style="fill:white"
-                dominant-baseline="hanging" text-anchor="middle"
-                :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`">Koszt: {{
-                  line.cost }}</text>
+            <g
+              class="hoverable"
+              :class="{
+                'hovered-line': hoveredLine === line,
+                'hovered-sth': hoveredLine !== undefined && hoveredLine.maxFlow > 0
+              }"
+            >
+              <line
+                :x1="line.x1"
+                :y1="line.y1"
+                :x2="line.x2"
+                :y2="line.y2"
+                :style="`stroke:${line.color};stroke-width:2`"
+              />
+              <polygon
+                :points="`${line.x2},${line.y2} ${line.x2 - 10},${line.y2 - 10} ${line.x2 - 10},${line.y2 + 10}`"
+                :style="`fill:${line.color}`"
+                :transform="`rotate(${line.angle} ${line.x2} ${line.y2})`"
+              />
+              <text
+                class="shadow"
+                :x="(line.x1 + line.x2) / 2"
+                :y="(line.y1 + line.y2) / 2"
+                style="fill: white"
+                dominant-baseline="ideographic"
+                text-anchor="middle"
+                :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`"
+              >
+                Przepływ: {{ line.flow ?? '-' }} / {{ line.maxFlow }}
+              </text>
+              <text
+                class="shadow"
+                :x="(line.x1 + line.x2) / 2"
+                :y="(line.y1 + line.y2) / 2"
+                style="fill: white"
+                dominant-baseline="hanging"
+                text-anchor="middle"
+                :transform="`rotate(${line.angle} ${(line.x1 + line.x2) / 2} ${(line.y1 + line.y2) / 2})`"
+              >
+                Koszt: {{ line.cost }}
+              </text>
             </g>
           </template>
         </template>
@@ -374,24 +464,57 @@ input {
           </b-tr>
         </b-thead>
         <b-tbody>
-          <b-tr v-for="line of lines" :key="line.id" @mouseover="mouseOver(line)" @mouseout="mouseOut(line)">
-            <b-td class="p-0"><b-form-input v-model="names[line.p1]" size="sm" /></b-td>
-            <b-td class="p-0"><b-form-input v-model="names[line.p2]" size="sm" /></b-td>
-            <b-td class="p-0"><b-form-input type="number" v-model.number="line.cost" size="sm"
-                :disabled="creatingPlan" /></b-td>
+          <b-tr
+            v-for="line of lines"
+            :key="line.id"
+            @mouseover="mouseOver(line)"
+            @mouseout="mouseOut(line)"
+          >
+            <b-td class="p-0">
+              <b-form-input v-model="names[line.p1]" size="sm" />
+            </b-td>
+            <b-td class="p-0">
+              <b-form-input v-model="names[line.p2]" size="sm" />
+            </b-td>
+            <b-td class="p-0">
+              <b-form-input
+                type="number"
+                v-model.number="line.cost"
+                size="sm"
+                :disabled="creatingPlan"
+              />
+            </b-td>
             <b-td class="p-0 text-center">
-              <b-progress v-if="line.flow" :value="line.flow" :max="line.maxFlow"
-                :variant="line.flow === line.maxFlow ? 'success' : 'danger'" size="sm" show-value striped animated />
+              <b-progress
+                v-if="line.flow"
+                :value="line.flow"
+                :max="line.maxFlow"
+                :variant="line.flow === line.maxFlow ? 'success' : 'danger'"
+                size="sm"
+                show-value
+                striped
+                animated
+              />
               <template v-else>-</template>
             </b-td>
-            <b-td class="p-0"><b-form-input type="number" v-model.number="line.maxFlow" size="sm"
-                :disabled="creatingPlan" /></b-td>
+            <b-td class="p-0">
+              <b-form-input
+                type="number"
+                v-model.number="line.maxFlow"
+                size="sm"
+                :disabled="creatingPlan"
+              />
+            </b-td>
           </b-tr>
         </b-tbody>
       </b-table-simple>
     </div>
-    <b-button class="mx-auto" variant="primary"
-      :disabled="deliveries.length === 0 || transports.length === 0 || creatingPlan" @click="createPlan">Utwórz
-      plan</b-button>
+    <b-button
+      class="mx-auto"
+      variant="primary"
+      :disabled="deliveries.length === 0 || transports.length === 0 || creatingPlan"
+      @click="createPlan"
+      >Utwórz plan
+    </b-button>
   </div>
 </template>

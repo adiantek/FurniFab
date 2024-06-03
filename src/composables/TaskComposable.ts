@@ -1,6 +1,6 @@
 import { type Ref, ref, watch } from 'vue'
 import { exportApi, type ExportData, importApi, loadApi, saveApi } from '@/api'
-import { useSuppliers, useSupplyPlan } from '@/composables/SupplierComposable'
+import { useSuppliers } from '@/composables/SupplierComposable'
 
 export interface BusinessTask {
   id: number
@@ -86,28 +86,37 @@ function loadData(data: BusinessTask[] | null): void {
 export async function importData(): Promise<void> {
   const data = await importApi()
   loadData(data.businessTasks)
-  useSuppliers().value = data.suppliers
-  useSupplyPlan().value = data.supplyPlan
   useBoardWidth().value = data.boardSize[0]
   useBoardHeight().value = data.boardSize[1]
+  const { lines, deliveries, transports, names } = useSuppliers()
+  lines.value = data.lines
+  deliveries.value = data.deliveries
+  transports.value = data.transports
+  names.value = data.names
 }
 
 export async function exportData(): Promise<void> {
+  const { lines, deliveries, transports, names } = useSuppliers()
   const data: ExportData = {
     businessTasks: businessTasks.value,
-    suppliers: useSuppliers().value,
-    supplyPlan: useSupplyPlan().value,
-    boardSize: [useBoardWidth().value, useBoardHeight().value]
+    boardSize: [useBoardWidth().value, useBoardHeight().value],
+    lines: lines.value,
+    deliveries: deliveries.value,
+    transports: transports.value,
+    names: names.value
   }
   await exportApi(data)
 }
 
 export function save(): Promise<void> {
+  const { lines, deliveries, transports, names } = useSuppliers()
   const data: ExportData = {
     businessTasks: businessTasks.value,
-    suppliers: useSuppliers().value,
-    supplyPlan: useSupplyPlan().value,
-    boardSize: [useBoardWidth().value, useBoardHeight().value]
+    boardSize: [useBoardWidth().value, useBoardHeight().value],
+    lines: lines.value,
+    deliveries: deliveries.value,
+    transports: transports.value,
+    names: names.value
   }
   return saveApi(data)
 }
@@ -117,9 +126,12 @@ export async function load(): Promise<void> {
 
   if (data) {
     loadData(data.businessTasks)
-    useSuppliers().value = data.suppliers
-    useSupplyPlan().value = data.supplyPlan
     useBoardWidth().value = data.boardSize[0]
     useBoardHeight().value = data.boardSize[1]
+    const { lines, deliveries, transports, names } = useSuppliers()
+    lines.value = data.lines
+    deliveries.value = data.deliveries
+    transports.value = data.transports
+    names.value = data.names
   }
 }

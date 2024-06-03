@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api'
 import type { BusinessTask, RectInfo } from '@/composables/TaskComposable'
 import { useToast } from 'bootstrap-vue-next'
-import type { Supplier, SupplyPlan } from '@/composables/SupplierComposable'
+import type { Line } from '@/views/DeliveriesView.vue'
 
 export enum ConflictAlgorithm {
   List = 'List',
@@ -87,9 +87,11 @@ export function findMaxFlowMinCost(edges: Edge[][]): Promise<[Edge[][], number, 
 
 export interface ExportData {
   businessTasks: BusinessTask[]
-  suppliers: Supplier[]
-  supplyPlan?: SupplyPlan
   boardSize: [number, number]
+  lines: Line[]
+  deliveries: number[]
+  transports: number[]
+  names: Record<string, string>
 }
 
 export function exportApi(data: ExportData): Promise<void> {
@@ -133,7 +135,19 @@ export async function importApi(): Promise<ExportData> {
     data.businessTasks = data.businessTasks.map(parseDates)
   }
 
-  return data || { businessTasks: [], suppliers: [], boardSize: [100, 100] }
+  return (
+    data || {
+      businessTasks: [],
+      boardSize: [100, 100],
+      names: {
+        startPoint: 'Tartak',
+        endPoint: 'Fabryka'
+      },
+      lines: [],
+      deliveries: [],
+      transports: []
+    }
+  )
 }
 
 export function saveApi(data: ExportData): Promise<void> {
