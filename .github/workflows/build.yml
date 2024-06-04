@@ -49,6 +49,10 @@ jobs:
 
       - name: Cache rust
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            - src-tauri
+            - algo/scheduling_conflicts
 
       - name: Prepare node.js
         uses: actions/setup-node@v4
