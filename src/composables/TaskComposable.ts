@@ -83,11 +83,19 @@ function loadData(data: ExportData | null): void {
   }
   if (data.deliveries !== undefined) {
     deliveries.value = data.deliveries
-    deliveryCounter.value = Math.max(...data.deliveries) + 1
+    if (data.deliveries.length !== 0) {
+      deliveryCounter.value = Math.max(...data.deliveries) + 1
+    } else {
+      deliveryCounter.value = 0
+    }
   }
   if (data.transports !== undefined) {
     transports.value = data.transports
-    transportCounter.value = Math.max(...data.transports) + 1
+    if (data.transports.length !== 0) {
+      transportCounter.value = Math.max(...data.transports) + 1
+    } else {
+      transportCounter.value = 0
+    }
   }
   if (data.names !== undefined) {
     names.value = data.names

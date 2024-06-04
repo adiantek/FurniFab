@@ -111,7 +111,10 @@ function parseDates(task: BusinessTask): BusinessTask {
 }
 
 export enum BinPackingAlgorithm {
-  FFDH = 'FFDH'
+  FFDH = 'FFDH',
+  NFDH = 'NFDH',
+  BFDH = 'BFDH',
+  WFDH = 'WFDH'
 }
 
 export interface Bin {
