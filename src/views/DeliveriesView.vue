@@ -457,8 +457,8 @@ input {
             <b-th>Skąd</b-th>
             <b-th>Dokąd</b-th>
             <b-th>Koszt</b-th>
-            <b-th>Przepustowość</b-th>
-            <b-th>Maksymalna przepustowość</b-th>
+            <b-th>Ilość</b-th>
+            <b-th>Maksymalna ilość</b-th>
           </b-tr>
         </b-thead>
         <b-tbody>
